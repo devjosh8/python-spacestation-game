@@ -1,5 +1,8 @@
+import game
+
 def main():
-    print("Hello World!")
+    print("Spiel starten.")
+    game.start()
     pass
 
 
