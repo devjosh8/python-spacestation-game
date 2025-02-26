@@ -1,24 +1,11 @@
 from __future__ import annotations
-from . custom_errors import *
+from .customErrors import *
 
-#       Verbindungen
-#
-#         7   0   1
-#          \  |  /
-#           #####
-#      6 -  #   # - 2
-#           #####
-#          /  |  \
-#         5   4   3
-#
-# Verbindungen werden als 8 Bit (1 Byte) pro Zelle gespeichert. Dabei gibt
-# zum Beispiel Bit 8, wenn es 1 ist, die Verbindung zur Zelle oben links an
-
-class MapTile():
+class Room():
     
-    def __init__(self, x, y, isDangerous):
+    def __init__(self, x, y, isDangerous=False):
         self.isDangerous = isDangerous
-        self.connections = 0 << 8       # Alle Verbindungen auf 0 initialisieren
+        self.connections = 0b00000000       # Alle Verbindungen auf 0 initialisieren
         self.x = x
         self.y = y
         
@@ -27,7 +14,7 @@ class MapTile():
             raise ValueError("X and Y must be integers for map tile position")
     
     # sind zwei Zellen nebeneinander?
-    def tilesNearby(self, other: MapTile):
+    def tilesNearby(self, other: Room):
         if abs(self.x - other.x) <= 1:
             if abs(self.y - other.y) <= 1:
                 return True
@@ -35,14 +22,14 @@ class MapTile():
         return False
     
     # ist das Bit in den Connections gesetzt?
-    def connectedTo(self, other: MapTile):
+    def connectedTo(self, other: Room):
         if not self.tilesNearby(other):
             return False
         bitConnection = getBit(self, other);
         return ((1 << bitConnection) & self.connections) > 0
     
     # verbindet zwei Zellen miteinander (dh. schreibt die Connection-Bits um)
-    def connectTiles(self, other: MapTile):
+    def connectTiles(self, other: Room):
         # Zellen dürfen sich um maximal 1 bei beiden Koordinaten unterscheiden
         if self.tilesNearby(other):
             
@@ -54,23 +41,17 @@ class MapTile():
             other.connections = other.connections | 1 << bitConnectionFromOther
             
             return True
-        
         return False    
-            
+    
+    # gibt True zurück, wenn der Raum in alle Richtungen umgeben ist
+    def allConnectionsOccupied(self):
+        return (self.connections == 0b11111111)
 
-    
-class Map():
-    
-    def __init__(self, size):
-        self.size = size
-        self.tiles = [size][size] # Speichert die ganzen Tiles, die die Map ausmachen
-    
-    def generate_map():
-        pass
-    
 
-# Berechnet im Bezug auf one! das Bit das gesetzt sein muss, damit die beiden verbunden sind
-def getBit(one: MapTile, two: MapTile):
+
+
+# Berechnet im Bezug auf one das Bit das gesetzt sein muss, damit die beiden verbunden sind
+def getBit(one: Room, two: Room):
     xDiff = two.x - one.x
     yDiff = two.y - one.y
     

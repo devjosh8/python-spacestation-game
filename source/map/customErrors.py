@@ -1,4 +1,5 @@
 
+
 class TilesNotNearbyError(Exception):
     """
         Exception wenn Tiles nicht nebeneinander sind
