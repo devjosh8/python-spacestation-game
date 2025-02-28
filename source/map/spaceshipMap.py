@@ -45,16 +45,15 @@ class Map():
                 # eine zufällige Richtung auswählen -> alle möglichen Richtungen sind 0 in der Bitmaske
                 # alle Bits durchgehen und alle die 0 sind in eine Liste hinzufügen
                 possibleDirections = [i for i in range(8) if (selectedTile.connections & 1 << i) == 0]
-                direction = random.choice(possibleDirections)
-                xOffset, yOffset = getPositionOffsetByDirection(direction)
+                randomDirection = random.choice(possibleDirections)
+                xOffset, yOffset = getPositionOffsetByDirection(randomDirection)
                 newX = selectedTile.x + xOffset
                 newY = selectedTile.y + yOffset
                 
                 # neue Koordinaten validieren und gegebenenfalls neu versuchen
                 if newX < 0 or newY < 0 or newX >= self.size or newY >= self.size:
                     continue
-                
-                
+                            
                 # befindet sich an dieser Stelle bereits ein Tile?
                 # wenn ja, beide Tiles verbinden und abbrechen
                 tileFound = False
@@ -81,35 +80,73 @@ class Map():
     
     def print(self):
         # Ein 2D Array erstellen mit den Dimensionen size * size initialisiert auf alles ' ' 
-        buffer = [[" " for i in range(self.size)] for j in range(self.size)]
+        # Wichtig!!! Im Buffer kommt zuerst die Y-Koordinate, dann die X Koordinate!
+        buffer = [[" " for i in range(self.size * 2 + 1)] for j in range(self.size * 2 + 1)]
         
         tile: Room
         for tile in self.tiles:
-            buffer[tile.x][tile.y] = "#"
+            buffer[tile.y*2+1][tile.x*2+1] = "#"
         
-        for x in range(self.size):
-            for y in range(self.size):
+        for tile in self.tiles:
+            for directionIndex in range(8):
+                shift = (1 << directionIndex) & 0b11111111
+                if shift & tile.connections != 0:
+                    xOffset, yOffset = getPositionOffsetByDirection(directionIndex)
+                    char = getTextCharacterByDirection(directionIndex)
+                    
+                    # Falls zwei Querverbindungen bestehen, diese als X kennzeichnen
+                    if char == "/" and buffer[tile.y*2+1+yOffset][tile.x*2+1+xOffset] == "\\":
+                        char = "X"
+                    if char == "\\" and buffer[tile.y*2+1+yOffset][tile.x*2+1+xOffset] == "/":
+                        char = "X"
+                    buffer[tile.y*2+1+yOffset][tile.x*2+1+xOffset] = char   
+        
+        for x in range(self.size*2+1):
+            for y in range(self.size*2+1):
                 print(buffer[x][y], end="")
             print("")
 
 
 # gibt die Richtung in eine Verbindung anhand der Nummer der Richtung zurück
+# wichtig! Da  die Verbindung für den Buffer genutzt wird, ist die Y-Koordinate invertiert!
 def getPositionOffsetByDirection(direction):
     match(direction):
         case 0:
-            return (0, 1)
+            return (0, -1)
         case 1:
-            return (1, 1)
+            return (1, -1)
         case 2:
             return (1, 0)
         case 3:
-            return (1, -1)
+            return (1, 1)
         case 4:
-            return (0, -1)
+            return (0, 1)
         case 5:
-            return (-1, -1)
+            return (-1, 1)
         case 6:
             return (-1, 0)
         case 7:
-            return (-1, 1)
+            return (-1, -1)
     raise ValueError("Directional number could not be converted into acutal coordinated")
+
+# gibt den richtigen Text-Charakter für einen gesetzten Bit in der connections-Bit-Maske
+# eines Rooms zurück (siehe spaceshipRoom.py)
+def getTextCharacterByDirection(direction):
+    match(direction):
+        case 0:
+            return "|"
+        case 1:
+            return "/"
+        case 2:
+            return "-"
+        case 3:
+            return "\\"
+        case 4:
+            return "|"
+        case 5:
+            return "/"
+        case 6:
+            return "-"
+        case 7:
+            return "\\"
+    raise ValueError("Directional number could not be converted into text symbol")

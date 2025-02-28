@@ -14,7 +14,7 @@ class TestInput(unittest.TestCase):
         Testet das Erstellen von MapTiles, dabei sollten nur ganze Zahlen als
         x und y Koordinate (Integer) erlaubt sein
     """
-    def room(self):
+    def test_room(self):
         self.assertRaises(ValueError, Room, 0.1, 0, False)
         self.assertRaises(ValueError, Room, 0.1, 0.0000000000345654, False)
         self.assertRaises(ValueError, Room, 1, 10e7, False)
@@ -45,17 +45,18 @@ class TestInput(unittest.TestCase):
         
         
     """
-        Testet, ob die Funktion getBit das richtige Bit zurückgibt
+        Testet, ob die Funktion getBit das richtige Bit zurückgibt, um die Position zwischen zwei
+        Räumen korrekt zu verbinden (y wächst nach unten, x wächst nach rechts!) Siehe spaceShipMap
     """
     def test_get_bit(self):
-        self.assertEqual(getBit(Room(0, 0, False), Room(0, 1, False)), 0)
-        self.assertEqual(getBit(Room(5, 5, False), Room(6, 6, False)), 1)
+        self.assertEqual(getBit(Room(0, 0, False), Room(0, 1, False)), 4)
+        self.assertEqual(getBit(Room(5, 5, False), Room(6, 6, False)), 3)
         self.assertEqual(getBit(Room(345636, 10, False), Room(345637, 10, False)), 2)
-        self.assertEqual(getBit(Room(0, 0, False), Room(1, -1, False)), 3)
-        self.assertEqual(getBit(Room(6000, 3000, False), Room(6000, 3000-1, False)), 4)
-        self.assertEqual(getBit(Room(0, 0, False), Room(-1, -1, False)), 5)
+        self.assertEqual(getBit(Room(0, 0, False), Room(1, -1, False)), 1)
+        self.assertEqual(getBit(Room(6000, 3000, False), Room(6000, 3000-1, False)), 0)
+        self.assertEqual(getBit(Room(0, 0, False), Room(-1, -1, False)), 7)
         self.assertEqual(getBit(Room(29457, 2456, False), Room(29457-1, 2456, False)), 6)
-        self.assertEqual(getBit(Room(0, 0, False), Room(-1, 1, False)), 7)
+        self.assertEqual(getBit(Room(0, 0, False), Room(-1, 1, False)), 5)
 
         self.assertRaises(TilesCorrespondError, getBit, Room(0, 0, False), Room(0, 0, False))
         
@@ -79,6 +80,7 @@ class TestInput(unittest.TestCase):
                             self.assertRaises(TilesCorrespondError, m1.connectedTo, m2)
                             self.assertRaises(TilesCorrespondError, m2.connectedTo, m1)
                             continue
+                        
                         self.assertFalse(m1.connectedTo(m2))
                         self.assertFalse(m2.connectedTo(m1))
                         
@@ -99,3 +101,17 @@ class TestInput(unittest.TestCase):
                     mapTile.connectTiles(m1)
                     
         self.assertTrue(mapTile.allConnectionsOccupied())
+        
+    def test_get_text_character_by_direction(self):
+        r1 = Room(0, 0, False)
+        r2 = Room(1, 1, False)
+        r3 = Room(-1, 0, False)
+        r4 = Room(0, 1, False)
+        r1.connectTiles(r2)
+        r2.connectTiles(r3)
+        
+        self.assertEqual(getTextCharacterByDirection(getBit(r1, r2)), "\\")
+        self.assertEqual(getTextCharacterByDirection(getBit(r1, r3)), "-")
+        self.assertEqual(getTextCharacterByDirection(getBit(r3, r4)), "\\")
+        self.assertEqual(getTextCharacterByDirection(getBit(r4, r1)), "|")
+    

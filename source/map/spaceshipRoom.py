@@ -61,24 +61,24 @@ def getBit(one: Room, two: Room):
                 case 0:
                     raise TilesCorrespondError
                 case 1:
-                    return 0
-                case -1:
                     return 4
+                case -1:
+                    return 0
         case 1:
             match(yDiff):
                 case 0:
                     return 2
                 case 1:
-                    return 1
-                case -1:
                     return 3
+                case -1:
+                    return 1
         case -1:
             match(yDiff):
                 case 0:
                     return 6
                 case 1:
-                    return 7
-                case -1:
                     return 5
+                case -1:
+                    return 7
             
     raise TilesNotNearbyError
