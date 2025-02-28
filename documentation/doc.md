@@ -69,7 +69,7 @@ Eine einfachere Methode für den User, mit unter schwerer im Code, ist die Mögl
 In diesem Kapitel werden die grundlegenden Funktionen des Projektes erläutert und inwiefern die oben genannten Vorüberlegungen tatsächlich im Code umgesetzt wurden.
 
 ### Spielstart - Räume generieren
-Zum Spielstart ist das Spielfeld leer. Das Spielfeld wird in jedem Spiel neu generiert, sodass der Spieler stets Spaß haben kann. Die Generierung eines Spielfeldes ist eine große Herausforderung, da es viele verschiedene Konstellationen zwischen Räumen gibt. Es muss ein grundlegendes Schema festgelegt werden, nachdem die Generierung passiert:
+Zum Spielstart ist das Spielfeld leer. Das Spielfeld wird in jedem Spiel neu generiert, sodass Abwechslung beim Spielen garantiert ist. Die Generierung eines Spielfeldes ist eine große Herausforderung, da es viele verschiedene Konstellationen zwischen Räumen gibt. Es muss ein grundlegendes Schema festgelegt werden, nachdem die Generierung passiert:
 ```
   1. einen Raum in der Mitte der Karte erzeugen
   2. eine zufällige Richtung aussuchen
@@ -81,14 +81,14 @@ Zum Spielstart ist das Spielfeld leer. Das Spielfeld wird in jedem Spiel neu gen
     6b: ansonsten einen Raum in diese Richtung erzeugen und Verbindung herstellen
   7: gehe so lange zu 4 bis genügend Räume existieren
 
-  8: Solange alle Räume die nur eine Verbindung haben entfernen, bis nur noch Räume mit mehr als 2 Verbindungen übrig bleiben
+  8: Solange alle Räume die nur eine Verbindung haben entfernen, bis nur noch Räume mit mehr als einer Verbindungen übrig bleiben
 ```
 Anschließend müssen Räume als _sicher_ oder _gefährlich_ klassifiziert werden:
 ```
-  1. Gehe alle Räume durch
-  2. Setze Räume zufällig auf "gefährlich" mit einer bestimmten Wahrscheinlichkeit
-  3. Gehe nochmal alle Räume durch
-  4. Setze für jeden Raum die Anzahl an gefährlichen Nachbarräumen, sodass diese später nicht berechnet werden muss
+  1. gehe alle Räume durch
+    2. setze Räume zufällig auf "gefährlich" mit einer bestimmten Wahrscheinlichkeit
+  3. gehe nochmal alle Räume durch
+    4. setze für jeden Raum die Anzahl an gefährlichen Nachbarräumen, sodass diese später nicht berechnet werden muss
 ```
 
 # Programmarchitektur
