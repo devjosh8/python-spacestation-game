@@ -1,5 +1,6 @@
 from __future__ import annotations
 from .spaceshipRoom import *
+from .mapHelper import *
 import random
 
 #       Verbindungen
@@ -44,7 +45,7 @@ class Map():
                 
                 # eine zufällige Richtung auswählen -> alle möglichen Richtungen sind 0 in der Bitmaske
                 # alle Bits durchgehen und alle die 0 sind in eine Liste hinzufügen
-                possibleDirections = [i for i in range(8) if (selectedTile.connections & 1 << i) == 0]
+                possibleDirections = [i for i in range(8) if (selectedTile.connections & (1 << i)) == 0]
                 randomDirection = random.choice(possibleDirections)
                 xOffset, yOffset = getPositionOffsetByDirection(randomDirection)
                 newX = selectedTile.x + xOffset
@@ -87,66 +88,78 @@ class Map():
         for tile in self.tiles:
             buffer[tile.y*2+1][tile.x*2+1] = "#"
         
-        for tile in self.tiles:
-            for directionIndex in range(8):
-                shift = (1 << directionIndex) & 0b11111111
-                if shift & tile.connections != 0:
-                    xOffset, yOffset = getPositionOffsetByDirection(directionIndex)
-                    char = getTextCharacterByDirection(directionIndex)
-                    
-                    # Falls zwei Querverbindungen bestehen, diese als X kennzeichnen
-                    if char == "/" and buffer[tile.y*2+1+yOffset][tile.x*2+1+xOffset] == "\\":
-                        char = "X"
-                    if char == "\\" and buffer[tile.y*2+1+yOffset][tile.x*2+1+xOffset] == "/":
-                        char = "X"
-                    buffer[tile.y*2+1+yOffset][tile.x*2+1+xOffset] = char   
+        # erster Durchlauf um die Wege zu platzieren
+        for tile in self.getMapTiles():
+            for neighbor in self.getNeighbouringTilesWithConnection(tile):
+                posOffsetX = neighbor.x - tile.x
+                posOffsetY = neighbor.y - tile.y
+                
+                directionIndex = getDirectionIndexByPositionOffset( (posOffsetX, posOffsetY) )
+                char = getTextCharacterByDirection(directionIndex)
+                
+                buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
+                
+        # zweiter Durchlauf, um Diagonalverbindungen richtig zu platzieren 
+        # vorheriger Code hat ergeben, dass beide Schleifen NICHT in eine gepackt werden können
+        # und seperat gehalten werden müssen!! TODO: Code optimieren
+        for tile in self.getMapTiles():
+            for neighbor in self.getNeighbouringTilesWithConnection(tile):
+                posOffsetX = neighbor.x - tile.x
+                posOffsetY = neighbor.y - tile.y
+                
+                directionIndex = getDirectionIndexByPositionOffset( (posOffsetX, posOffsetY) )
+                char = getTextCharacterByDirection(directionIndex)
+                if char == "/" and buffer[tile.y*2+posOffsetY + 1][tile.x*2+posOffsetX + 1] == "\\":
+                    char = "X"
+                    buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
+                if char == "\\" and buffer[tile.y*2+posOffsetY + 1][tile.x*2+posOffsetX + 1] == "/":
+                    char = "X"
+                    buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
         
         for x in range(self.size*2+1):
             for y in range(self.size*2+1):
                 print(buffer[x][y], end="")
             print("")
 
+    def getTileAt(self, x, y):
+        room: Room
+        for room in self.getMapTiles():
+            if room.x == x and room.y == y:
+                return room
+        
+        raise ValueError("No such room")
+    
+    def tileExists(self, x, y):
+        room: Room
+        for room in self.getMapTiles():
+            if room.x == x and room.y == y:
+                return True
+        return False
+    
+    def getStartingTile(self):
+        genX = int(self.size / 2)
+        genY = int(self.size / 2)
+        return self.getTileAt(genX, genY)
 
-# gibt die Richtung in eine Verbindung anhand der Nummer der Richtung zurück
-# wichtig! Da  die Verbindung für den Buffer genutzt wird, ist die Y-Koordinate invertiert!
-def getPositionOffsetByDirection(direction):
-    match(direction):
-        case 0:
-            return (0, -1)
-        case 1:
-            return (1, -1)
-        case 2:
-            return (1, 0)
-        case 3:
-            return (1, 1)
-        case 4:
-            return (0, 1)
-        case 5:
-            return (-1, 1)
-        case 6:
-            return (-1, 0)
-        case 7:
-            return (-1, -1)
-    raise ValueError("Directional number could not be converted into acutal coordinated")
-
-# gibt den richtigen Text-Charakter für einen gesetzten Bit in der connections-Bit-Maske
-# eines Rooms zurück (siehe spaceshipRoom.py)
-def getTextCharacterByDirection(direction):
-    match(direction):
-        case 0:
-            return "|"
-        case 1:
-            return "/"
-        case 2:
-            return "-"
-        case 3:
-            return "\\"
-        case 4:
-            return "|"
-        case 5:
-            return "/"
-        case 6:
-            return "-"
-        case 7:
-            return "\\"
-    raise ValueError("Directional number could not be converted into text symbol")
+    # gibt alle Nachbar-Räume eines Raums zurück im Koordinatenformat (x,y), die mit dem Raum "tile" Verbunden sind
+    def getNeighbouringTilesWithConnection(self, tile: Room):
+        neighbours = []
+        
+        for i in range(8):
+            shift = (1 << i) & 0b11111111
+            if shift & tile.connections != 0:
+                xOffset, yOffset = getPositionOffsetByDirection(i)
+                
+                neighbours.append(self.getTileAt(tile.x + xOffset, tile.y + yOffset))
+                
+        return neighbours
+    
+    def getNeighbouringTilesWithoutConnection(self, tile: Room):
+        neighbours = []
+        
+        for i in range(8):
+            xOffset, yOffset = getPositionOffsetByDirection(i)
+            if self.tileExists(x, y):
+                neighbours.append(self.getTileAt(tile.x + xOffset, tile.y + yOffset))
+                
+        return neighbours

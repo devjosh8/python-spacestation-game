@@ -115,3 +115,28 @@ class TestInput(unittest.TestCase):
         self.assertEqual(getTextCharacterByDirection(getBit(r3, r4)), "\\")
         self.assertEqual(getTextCharacterByDirection(getBit(r4, r1)), "|")
     
+    def test_get_neighbouring_tiles(self):
+        spMap = Map(10)
+        for x in range(10):
+            for y in range(10):
+                spMap.addMapTile(Room(x, y, False))
+        
+        spMap.getTileAt(5, 5).connectTiles(spMap.getTileAt(6, 6))
+        self.assertTrue(spMap.getTileAt(6, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(5, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(6, 5) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(5, 4) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(4, 5) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(4, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(3, 7) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        spMap.getTileAt(5, 5).connectTiles(spMap.getTileAt(4, 5))
+        spMap.getTileAt(5, 5).connectTiles(spMap.getTileAt(6, 5))
+        self.assertTrue(spMap.getTileAt(6, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertTrue(spMap.getTileAt(4, 5) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertTrue(spMap.getTileAt(6, 5) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        
+        self.assertFalse(spMap.getTileAt(5, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(5, 4) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(4, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        self.assertFalse(spMap.getTileAt(3, 7) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        pass
