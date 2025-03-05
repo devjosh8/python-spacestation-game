@@ -79,14 +79,22 @@ class Map():
     def getMapTiles(self):
         return self.tiles
     
-    def print(self):
+    
+    def print(self, colors=None, defaultColor=None):
         # Ein 2D Array erstellen mit den Dimensionen size * size initialisiert auf alles ' ' 
         # Wichtig!!! Im Buffer kommt zuerst die Y-Koordinate, dann die X Koordinate!
         buffer = [[" " for i in range(self.size * 2 + 1)] for j in range(self.size * 2 + 1)]
         
+        # Durchlauf, um Räume und Farben zu platzieren
         tile: Room
         for tile in self.tiles:
-            buffer[tile.y*2+1][tile.x*2+1] = "#"
+            if colors == None:
+                buffer[tile.y*2+1][tile.x*2+1] = "#"
+            elif (tile.x, tile.y) in colors:
+                tileColor = colors[(tile.x, tile.y)]
+                buffer[tile.y*2+1][tile.x*2+1] = (tileColor + "#" + defaultColor)
+            else:
+                buffer[tile.y*2+1][tile.x*2+1] = "#" 
         
         # erster Durchlauf um die Wege zu platzieren
         for tile in self.getMapTiles():
@@ -116,6 +124,7 @@ class Map():
                     char = "X"
                     buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
         
+        # schließlich den Buffer printen
         for x in range(self.size*2+1):
             for y in range(self.size*2+1):
                 print(buffer[x][y], end="")
