@@ -1,5 +1,5 @@
 from map.spaceshipMap import *
-from ui.asciiArt import *
+from ui.printingUtil import *
 from ui.consoleUtils import *
 
 def start():
