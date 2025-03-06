@@ -27,7 +27,7 @@ class Map():
     def generateMap(self):
         generatedRooms = 0
         
-        while(generatedRooms < 35):
+        while(generatedRooms < 50):
             # in der Mitte der Karte anfangen
             if generatedRooms == 0:
                 genX = int(self.size / 2)
