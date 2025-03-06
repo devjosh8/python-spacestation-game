@@ -28,7 +28,6 @@ def printGreeter():
     print()
     
 def printLegend():
-    print(Color.CYAN + Color.BOLD + "#" + Color.RESET + ": Startpunkt\t"
-          + Color.GREEN + "#" + Color.RESET + ": Sichere Räume\t"
+    print("\t" + Color.GREEN + "#" + Color.RESET + ": Sicher\t"
           + Color.RED + "#" + Color.RESET + ": Markierung\t")
     
