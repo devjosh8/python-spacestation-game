@@ -9,12 +9,7 @@ def start():
     input()
     
     printGreeter()
-    
-    print("Spiel starten", end="", flush=True)
-    print()
-    for i in range(10):
-        sleep(0.03)
-        print(".", end="", flush=True)
+    input()
     
     gameMap = Map(10)
     gameMap.generateMap()
