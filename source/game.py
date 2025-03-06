@@ -1,7 +1,6 @@
 from map.spaceshipMap import *
 from ui.asciiArt import *
 from ui.consoleUtils import *
-from time import sleep
 
 def start():
     clearConsole()
