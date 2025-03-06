@@ -1,3 +1,5 @@
+from .consoleUtils import *
+
 greeter = """
  ______    _______  __   __  __   __  _______  _______  __   __  ___   _______  _______ 
 |    _ |  |   _   ||  | |  ||  |_|  ||       ||       ||  | |  ||   | |       ||       |
@@ -18,9 +20,15 @@ greeter2 = """
 |__| |__||_______||_______||_|  |__|  |___|  |_______||_______||_______||___|  |_|
 """
 
+
+
 def printGreeter():
     print()
     print(greeter) # Greeter printen in die Konsole
     print()
-    print(greeter2)
-    print()
+    
+def printLegend():
+    print(Color.CYAN + Color.BOLD + "#" + Color.RESET + ": Startpunkt\t"
+          + Color.GREEN + "#" + Color.RESET + ": Sichere Räume\t"
+          + Color.RED + "#" + Color.RESET + ": Markierung\t")
+    
