@@ -33,9 +33,5 @@ def gameLoop(gameMap: Map):
     for neighbour in gameMap.getNeighbouringTilesWithConnection(gameMap.getStartingTile()):
         colors[( neighbour.x, neighbour.y )] = Color.GREEN
     
-    for tile in gameMap.getMapTiles():
-        for neighbour in gameMap.getNeighbouringTilesWithConnection(tile):
-            print(str(tile.x) + ":" + str(tile.y) + " verbunden mit " + str(neighbour.x) + ":" + str(neighbour.y))
-    
     gameMap.print(colors=colors, defaultColor=Color.RESET)
     
