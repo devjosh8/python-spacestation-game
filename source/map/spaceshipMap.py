@@ -88,13 +88,11 @@ class Map():
         # Durchlauf, um Räume und Farben zu platzieren
         tile: Room
         for tile in self.tiles:
-            if colors == None:
-                buffer[tile.y*2+1][tile.x*2+1] = "#"
-            elif (tile.x, tile.y) in colors:
+            if colors != None and (tile.x, tile.y) in colors:
                 tileColor = colors[(tile.x, tile.y)]
                 buffer[tile.y*2+1][tile.x*2+1] = (tileColor + "#" + defaultColor)
             else:
-                buffer[tile.y*2+1][tile.x*2+1] = "#" 
+                buffer[tile.y*2+1][tile.x*2+1] = "#"
         
         # erster Durchlauf um die Wege zu platzieren
         for tile in self.getMapTiles():
