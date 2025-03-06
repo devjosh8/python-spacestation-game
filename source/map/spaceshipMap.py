@@ -168,7 +168,7 @@ class Map():
         
         for i in range(8):
             xOffset, yOffset = getPositionOffsetByDirection(i)
-            if self.tileExists(x, y):
+            if self.tileExists(xOffset, yOffset):
                 neighbours.append(self.getTileAt(tile.x + xOffset, tile.y + yOffset))
                 
         return neighbours
