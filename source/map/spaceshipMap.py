@@ -72,7 +72,28 @@ class Map():
                 self.addMapTile(newTile)
                 
             generatedRooms+=1
-    
+
+        # zufällig gefährliche Räume generieren
+        room: Room
+        for room in self.getMapTiles():
+            if random.randint(0, 3) == 0:
+                room.isDangerous = True
+
+        # der Startraum ist in jedem Fall nicht gefährlich
+        self.getStartingTile().isDangerous = False
+
+        # Für jeden Raum die Anzahl an gefährlichen Nachbarräumen setzen
+        for room in self.getMapTiles():
+            connectedRooms: Room
+            dangerousNearbyRooms = 0
+            for connectedRooms in self.getNeighbouringTilesWithConnection(room):
+                if connectedRooms.isDangerous:
+                    dangerousNearbyRooms+=1
+            room.dangerousNearbyRooms = dangerousNearbyRooms
+            # Nur Räume, die nicht gefährlich sind, können schon gescannt sein!
+            if not room.isDangerous and random.randint(0, 1) == 0:
+                room.isRevealed = True
+            
     def addMapTile(self, tile: Room):
         self.tiles.append(tile)
         
@@ -80,19 +101,24 @@ class Map():
         return self.tiles
     
     
-    def print(self, colors=None, defaultColor=None):
+    def print(self, colors=None, defaultColor=None, safeColor=None):
         # Ein 2D Array erstellen mit den Dimensionen size * size initialisiert auf alles ' ' 
         # Wichtig!!! Im Buffer kommt zuerst die Y-Koordinate, dann die X Koordinate!
-        buffer = [[" " for i in range(self.size * 2 + 1)] for j in range(self.size * 2 + 1)]
+        buffer = [["." for i in range(self.size * 2 + 1)] for j in range(self.size * 2 + 1)]
         
         # Durchlauf, um Räume und Farben zu platzieren
         tile: Room
         for tile in self.tiles:
+            
+            roomChar = "#"
+            if tile.isRevealed:
+                roomChar = (safeColor + str(tile.dangerousNearbyRooms) + defaultColor)
+            
             if colors != None and (tile.x, tile.y) in colors:
                 tileColor = colors[(tile.x, tile.y)]
-                buffer[tile.y*2+1][tile.x*2+1] = (tileColor + "#" + defaultColor)
+                buffer[tile.y*2+1][tile.x*2+1] = (tileColor + roomChar + defaultColor)
             else:
-                buffer[tile.y*2+1][tile.x*2+1] = "#"
+                buffer[tile.y*2+1][tile.x*2+1] = roomChar
         
         # erster Durchlauf um die Wege zu platzieren
         for tile in self.getMapTiles():
@@ -122,8 +148,16 @@ class Map():
                     char = "X"
                     buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
         
-        # schließlich den Buffer printen
+        # schließlich den Buffer printen (mit Grid, um auszuwählen)
+        print("\t", end="")
+        for x in range(self.size):
+            print(" " + str(x), end="")
+        print()
         for x in range(self.size*2+1):
+            if x % 2 != 0:
+                print(str(int((x-1)/2)) + "\t", end="")
+            else:
+                print("\t", end="")
             for y in range(self.size*2+1):
                 print(buffer[x][y], end="")
             print("")

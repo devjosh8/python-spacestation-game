@@ -8,6 +8,8 @@ class Room():
         self.connections = 0b00000000       # Alle Verbindungen auf 0 initialisieren
         self.x = x
         self.y = y
+        self.dangerousNearbyRooms = 0
+        self.isRevealed = False
         
         # Sowohl x als auch y müssen ganzzahlige Werte sein
         if not (isinstance(x, int) and isinstance(y, int)):
