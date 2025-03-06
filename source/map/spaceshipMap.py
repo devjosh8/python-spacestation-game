@@ -91,7 +91,7 @@ class Map():
                     dangerousNearbyRooms+=1
             room.dangerousNearbyRooms = dangerousNearbyRooms
             # Nur Räume, die nicht gefährlich sind, können schon gescannt sein!
-            if not room.isDangerous and random.randint(0, 1) == 0:
+            if not room.isDangerous and random.randint(0, 2) == 0:
                 room.isRevealed = True
             
     def addMapTile(self, tile: Room):
@@ -104,8 +104,10 @@ class Map():
     def print(self, colors=None, defaultColor=None, safeColor=None):
         # Ein 2D Array erstellen mit den Dimensionen size * size initialisiert auf alles ' ' 
         # Wichtig!!! Im Buffer kommt zuerst die Y-Koordinate, dann die X Koordinate!
-        buffer = [["." for i in range(self.size * 2 + 1)] for j in range(self.size * 2 + 1)]
-        
+        # Einen Punkt . jeweils nur in jede zweite Spalte und Zeile platzieren, damit das Raster nicht voll mit Punkten ist
+        # und für den User die Zusammenhänge zwischen Zeile und Spalte besser ersichtlich machen, statt einem Punkte spam
+        buffer = [[("." if i % 2 != 0 and j % 2 != 0 else " ") for i in range(self.size * 2 + 1)] for j in range(self.size * 2 + 1)]
+
         # Durchlauf, um Räume und Farben zu platzieren
         tile: Room
         for tile in self.tiles:
@@ -148,13 +150,18 @@ class Map():
                     char = "X"
                     buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
         
-        # schließlich den Buffer printen (mit Grid, um auszuwählen)
+        # schließlich den Buffer printen (mit Grid, um besser auswählen zu können)
+        
+        # Spaltenanzeige printen
         print("\t", end="")
         for x in range(self.size):
             print(" " + str(x), end="")
+            
         print()
+            
         for x in range(self.size*2+1):
             if x % 2 != 0:
+                # Zeilenanzeige printen
                 print(str(int((x-1)/2)) + "\t", end="")
             else:
                 print("\t", end="")
