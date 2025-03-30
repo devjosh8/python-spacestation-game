@@ -29,10 +29,10 @@ Die Hauptdatei ist `main.py` in `source/main.py`.
 
 # Tests und Codevalidation
 
-Pylint: `PYTHONPATH=. pylint main.py` im `source`-Ordner ausführen
-Mypy: `mypy --explicit-package-bases --check-untyped-defs .` im `source`-Ordner ausführen
+* Pylint: `PYTHONPATH=. pylint main.py` im `source`-Ordner ausführen
+* Mypy: `mypy --explicit-package-bases --check-untyped-defs .` im `source`-Ordner ausführen
 
-Unittests: `PYTHONPATH=.. python3 -m unittest` im `tests`-Ordner ausführen
+* Unittests: `PYTHONPATH=.. python3 -m unittest` im `tests`-Ordner ausführen
 
-Coverage: `PYTHONPATH=.. coverage run -m unittest discover` im `tests`-Ordner ausführen
+* Coverage: `PYTHONPATH=.. coverage run -m unittest discover` im `tests`-Ordner ausführen
 `coverage report` für das finale Ergebnis
