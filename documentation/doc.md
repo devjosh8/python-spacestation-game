@@ -3,13 +3,35 @@
 # Inhaltsverzeichnis
 1. [Einleitung](#introduction)
 
-    1.1 [Vorüberlegung und erste Ideen]()
+    1.1 [Spiel ausführen]()
 
-    1.1 [Vorüberlegung und erste Ideen]()
+    1.2 [Vorüberlegung und erste Ideen]()
 
-2. [Programmarchitektur](#2)
-3. [Programmablauf](#1)
-4. [Testergebnisse und Analyse](#0)
+2. [Programmablauf](#1)
+
+    2.1 [Projektaufbau]()
+
+    2.2 [Die verschiedenen Dateien]()
+
+3. [Das Userinterface: Interaktion mit dem Spiel](#2)
+
+    3.1 [Darstellung der Raumstation]()
+
+    3.2 [Die Legende]()
+    
+    3.3 [Koordinateneingabe und Joker]()
+4. [Wichtige Codebestandteile](#1)
+
+    4.1 [Was ist ein Raum? - spaceshipRoom.py]()
+
+    4.2 [Was ist eine Karte? - spaceshipMap.py]()
+
+    4.3 [Spielstart - Räume generieren]()
+
+
+5. [Bibliotheken](#1)
+
+6. [Testergebnisse und Analyse](#0)
 
 
 # Einleitung <a name="introduction"></a>
@@ -79,6 +101,49 @@ Eine einfachere Methode für den User, mit unter schwerer im Code, ist die Mögl
 Um dem User das Scannen eines Raumes zu ermöglichen, muss der User nun durch X- und Y-Koordinate einen Raum auswählen. Dies geschieht am besten durch ein oder zwei Eingaben, wobei der User entweder im Format `x:y` einen Raum bestimmt oder nacheinander X- und Y-Koordinate eingibt. 
 
 Außerdem sollte der User die Möglichkeit haben, Räume nicht nur zu scannen sondern auch zu _markieren_, wodurch ein Raum mit einer bestimmten Farbe **<span style="color:red;">#</span>** markiert wird. Das hilft dem Spieler sich die Räume zu merken, die er als gefährlich identifiziert.
+
+# Programmarchitektur
+
+## Projektaufbau
+
+```
+.
+├── mypy.ini
+├── pylintrc
+├── README.md
+├── requirements.txt
+├── documentation
+│   └── documentation.pdf
+├── source
+│   ├── main.py
+│   ├── game.py
+│   ├── map
+│   │ ├── spaceshipMap.py
+│   │ ├── spaceshipRoom.py
+│   │ ├── mapHelper.py
+│   │ └── customErros.py
+│   └── ui
+│     ├── userInput.py
+│     └── consoleUtils.py
+└── tests
+    ├── test_map.py
+    ├── test_mapHelper.py
+    ├── test_rooms.py
+    └── test_userInput.py
+```
+
+Der Projektaufbau folgt den Bestimmungen in den Anforderungen an das Projekt. `map` enthält Python-Dateien, die etwas mit der Karte zutun haben (Räume, Karte und Helfer-Funktionen). `ui` enthält Python-Dateien für den User-Input. `main.py` und `game.py` sind die zwei Hauptdateien und liegen im Root-Verzeichnis. 
+
+## Die verschiedenen Dateien
+
+* `main.py`: Startpunkt des Spiels
+* `game.py`: Hauptschleife und oberflächliche Logik
+* `spaceshipMap.py`: Enthält Logik für die Karte
+* `spaceshipRoom.py`: Enthält Logik für einen Raum und Raumverbindungen
+* `mapHelper.py`: Helfer-Funktionen für die Karte und Raumverbindungen
+* `customErros.py`: Eigene Fehler für bessere Fehlerbehandlung im Bezug auf Räume und Karten
+* `userInput.py`: Helfer-Datei für den Input des Spielers
+* `consoleUtils.py`: Helfer-Funktionen für den Umgang mit der Konsole und vorbereitete Prints
 
 # Das Userinterface: Interaktion mit dem Spiel
 Das Userinterface ist das Herz des Spiels. Es macht aus, wie man als Spieler mit dem Spiel umgeht, wie man es empfindet und seine Aktionen kontrolliert.
@@ -228,10 +293,30 @@ Diese Funktion konvertiert ein Positionsoffset zwischen zwei Räumen in das ben�
 
 ## Was ist eine Karte?
 
-Auch hier hätte man es anders machen können und einfach ein Array oder ebenfalls eine Bitmaske haben können, das angibt, wo sich ein Raum befindet und in weiteren Arrays dann Informationen zu der Kartenbegebenheit gespeichert. Räume haben sehr viele individuelle Variablen, deshalb wäre dieser Ansatz sehr unübersichtlich geworden. Im Endeffekt ist ein Raum nur eines: Eine Sammlung (Array) von Räumen.
+Eine Karte oder auch das Raumschiff, ist im Spiel ebenfalls eine Klasse, die ein Array von Räumen enthält:
 
-## Spielstart - Räume generieren
-Zum Spielstart ist das Spielfeld leer. Das Spielfeld wird in jedem Spiel neu generiert, sodass Abwechslung beim Spielen garantiert ist. Die Generierung eines Spielfeldes ist eine große Herausforderung, da es viele verschiedene Konstellationen zwischen Räumen gibt. Es muss ein grundlegendes Schema festgelegt werden, nachdem die Generierung passiert:
+```python
+class Map():
+    """ Map, Einheit für die Karte, enthält Räume und Logikfunktionen """
+    def __init__(self, size: int, dangerousRoomsPropability:float =1/3) -> None:
+        self.size = size
+        self.rooms: list[Room] = [] # Speichert die ganzen Tiles, die die Map ausmachen
+        self.dangerousRoomsPropability = dangerousRoomsPropability
+```
+
+Wichtige Variablen:
+* `size`: Gibt die Größe der Karte an (immer quadratisch)
+* `rooms`: Ist das Array, das `Room`-Objekte enthält
+* `dangerousRoomsPropability`: Die Wahrscheinlichkeit, dass ein Raum ein gefährlicher Raum wird (hier wird ein Raum zu einer Wahrscheinlichkeit von 33% gefährlich)
+
+Neben einigen Funktionen die es erlauben, Räume in die Karte einzufügen oder zu entfernen, gibt es zwei sehr wichtige Funktionen innerhalb der Map-Klasse.
+* `generateMap`: Generiert die Karte zufällig
+* `print`: Druckt die Map, wie oben im User-Interface gezeigt, auf die Konsole
+
+In den folgenden beiden Kapiteln werden diese essentiellen Methoden erläutert und anhand des Codes erklärt.
+
+## Karten zufällig generieren
+Zum Spielstart ist das Spielfeld leer. Das Spielfeld wird in jedem Spiel neu generiert, sodass Abwechslung beim Spielen garantiert ist. Die Generierung eines Spielfeldes ist eine große Herausforderung, da es viele verschiedene Konstellationen zwischen Räumen gibt. Es muss ein grundlegendes Schema festgelegt werden, nachdem die Generierung abläuft:
 ```
   1. einen Raum in der Mitte der Karte erzeugen
   2. eine zufällige Richtung aussuchen
@@ -253,29 +338,333 @@ Anschließend müssen Räume als _sicher_ oder _gefährlich_ klassifiziert werde
   3. gehe nochmal alle Räume durch
     4. setze für jeden Raum die Anzahl an gefährlichen Nachbarräumen, sodass diese später nicht berechnet werden muss
 ```
-Im Code sieht das in etwa wie folgt aus (unwichtige Teile zum Platzsparen weggelassen):
+Im Code sieht das in etwa wie folgt aus:
 
+### I: Räume platzieren
 
-# Programmarchitektur
+```python
+# Die Karte generieren
+    def generateMap(self) -> None:
+        generatedRooms = 0
+        
+        # in der Mitte der Karte anfangen
+        genX = int(self.size / 2)
+        genY = int(self.size / 2)
+                
+        newRoom = Room(genX, genY, False)
+        self.addRoom(newRoom)
 
-## Projektaufbau
-
+        while generatedRooms < 50:
+            # zufälligen Raum auswählen
+            selectedRoom:Room = random.choice(self.getRooms())
+            # weitermachen, wenn alle Richtungen blockiert sind
+            if selectedRoom.allConnectionsOccupied():
+                continue
+            
+            # eine zufällige Richtung auswählen -> alle möglichen Richtungen sind 0 in der Bitmaske
+            # alle Bits durchgehen und alle die 0 sind in eine Liste hinzufügen
+            possibleDirections = [i for i in range(8) if (selectedRoom.connections & (1 << i)) == 0]
+            randomDirection = random.choice(possibleDirections)
+            xOffset, yOffset = getPositionOffsetByDirection(randomDirection)
+            newX = selectedRoom.x + xOffset
+            newY = selectedRoom.y + yOffset
+            
+            # neue Koordinaten validieren und gegebenenfalls neu versuchen
+            if newX < 0 or newY < 0 or newX >= self.size or newY >= self.size:
+                continue
+                        
+            # befindet sich an dieser Stelle bereits ein Tile?
+            # wenn ja, beide Tiles verbinden und abbrechen
+            roomFound = False
+            for lookupRoom in self.getRooms():
+                if lookupRoom.x == newX and lookupRoom.y == newY:
+                    selectedRoom.connectRooms(lookupRoom)
+                    roomFound = True
+            
+            if roomFound:
+                continue
+            
+            # ansonsten neues Tile erstellen und mit dem aktuellen verbinden
+            newRoom = Room(selectedRoom.x + xOffset, selectedRoom.y + yOffset)
+            newRoom.connectRooms(selectedRoom)
+            self.addRoom(newRoom)
+                
+            generatedRooms+=1
+            
+        self._removeRoomsWithSingleConnection()
+        self._generateDangerousRooms()
 ```
-.
-├── mypy.ini
-├── README.md
-├── requirements.txt
-├── documentation
-│   └── documentation.pdf
-├── source
-│   ├── main.py
-│   └── example.py
-└── tests
-    ├── test_main.py
-    └── test_example.py
+
+Das ist der erste Teil der Kartengeneration. Zuerst wird ein Raum in der Mitte der Karte platziert. Dieser ist der Ausgangspunkt der folgenden Kartengeneration. Alles weitere passiert in der While-Schleife:
+* Zuerst wird ein zufälliger, schon existierender Raum ausgewählt
+  ```python
+  selectedRoom:Room = random.choice(self.getRooms())
+  ``` 
+* Wenn der Raum keine Verbindungen mehr frei hat, neu probieren
+  ```python
+  if selectedRoom.allConnectionsOccupied():
+    continue
+  ```
+* Anschließend wird eine Richtung ausgesucht, in die der neue Raum platziert werden soll. Es wird ein Array von 0 bis 7 angelegt und daraus ein zufälliges Element gezogen, sodass die Richtung feststeht. Das Offset wird, wie oben gezeigt daraus gebildet. Sollte der neue Raum außerhalb der Karte liegen, wird es ebenfalls nochmal neu probiert.
+  ```python
+  possibleDirections = [i for i in range(8) if (selectedRoom.connections & (1 << i)) == 0]
+  randomDirection = random.choice(possibleDirections)
+  xOffset, yOffset = getPositionOffsetByDirection(randomDirection)
+  newX = selectedRoom.x + xOffset
+  newY = selectedRoom.y + yOffset
+  
+  # neue Koordinaten validieren und gegebenenfalls neu versuchen
+  if newX < 0 or newY < 0 or newX >= self.size or newY >= self.size:
+      continue
+  ```  
+* Es wird jetzt geprüft, ob an dem neuen Ort bereits ein Raum existiert. Wenn ja, werden die Räume legedlich verbunden.
+  ```python
+  roomFound = False
+  for lookupRoom in self.getRooms():
+      if lookupRoom.x == newX and lookupRoom.y == newY:
+          selectedRoom.connectRooms(lookupRoom)
+          roomFound = True
+  
+  if roomFound:
+      continue
+  ```  
+* Ist das nicht der Fall, wird ein neuer Raum generiert, hinzugefügt und mit dem Ausgangsraum verbunden.
+  ```python
+  newRoom = Room(selectedRoom.x + xOffset, selectedRoom.y + yOffset)
+  newRoom.connectRooms(selectedRoom)
+  self.addRoom(newRoom)
+      
+  generatedRooms+=1
+  ```  
+
+
+### II: Räume mit einer Verbindung entfernen
+```python
+    def _removeRoomsWithSingleConnection(self) -> None:
+        roomWithSingleConnectionExist = True
+        roomsToRemoveNextIteration: list[Room] = []
+        while roomWithSingleConnectionExist:
+            roomToRemove: Room
+            for roomToRemove in roomsToRemoveNextIteration:
+                neighbours = self.getNeighbouringRoomsWithConnection(roomToRemove)
+                # Prämisse => roomToRemove hat nur einen Nachbar
+                
+                if len(neighbours) != 1:
+                    raise ValueError("Map generation error: Room which is supposed to have only 1 neighbour has 0 or more than 1")
+                
+                for neighbouringRoom in neighbours:
+                    roomToRemove.disconnectRooms(neighbouringRoom)
+                
+                self.removeRoom(roomToRemove)
+            
+            roomsToRemoveNextIteration.clear()
+            
+            roomWithSingleConnectionExist = False
+            for room in self.getRooms():
+                if room.getNumberOfConnections() == 1:
+                    roomsToRemoveNextIteration.append(room)
+                    roomWithSingleConnectionExist = True 
+```
+Diese Methode entfernt von den gerade generierten Räumen alle, die nur eine Verbindung haben. Es wird zuerst eine Variable `roomWithSingleConnectionExist` definiert, die immer angibt, ob es noch Räume gibt, die entfernt werden müssen. Räume die entfernt werden sollen, müssen in einem seperaten Array `roomsToRemoveNextIteration` zwischengespeichert werden, da man nicht während man über ein Array iteriert, aus diesem Objekte entfernen kann. Bevor der Raum wirklich von der Karte entfernt wird, werden noch etwaige Verbindungen mit anderen Räumen gelöscht.
+### III: Gefährliche Räume generieren
+```python
+    def _generateDangerousRooms(self) -> None:
+        # zufällig gefährliche Räume generieren
+        room: Room
+        for room in self.getRooms():
+            if random.randint(0, int(1/self.dangerousRoomsPropability)) == 0:
+                room.isDangerous = True
+
+        # der Startraum ist in jedem Fall nicht gefährlich
+        self.getStartingRoom().isDangerous = False
+
+        # Für jeden Raum die Anzahl an gefährlichen Nachbarräumen setzen
+        for room in self.getRooms():
+            connectedRoom: Room
+            dangerousNearbyRooms = 0
+            for connectedRoom in self.getNeighbouringRoomsWithConnection(room):
+                if connectedRoom.isDangerous:
+                    dangerousNearbyRooms+=1
+            room.dangerousNearbyRooms = dangerousNearbyRooms
+            # Nur Räume, die nicht gefährlich sind, können schon gescannt sein!
+            if not room.isDangerous and random.randint(0, 1) == 0:
+                room.isRevealed = True
+```
+Als letztes werden noch die gefährlichen Räume generiert und die Anzahlen an gefährlichen Nachbarn für jeden Raum gesetzt. Dazu werden im oberen Teil des Codes zuerst mithilfe der Variable `dangerousRoomsPropability` zufällig gefährliche Räume generiert und im unteren Teil wird für jeden Raum die Anzahl an nebenliegenden gefährlichen Räumen gezählt und anschließend gesetzt. Anschließend werden alle Räume mit 0 nebenliegenden gefährlichen Räumen mit einer Wahrscheinlichkeit von 50% aufgedeckt.
+## Wie die Karte auf die Konsole gelangt
+Ein wichtiger Teil ist das Drucken der Karte auf die Konsole. Die Raumverbindungen, die in den Bitmasken innerhalb der Raumobjkekte gespeichert sind, müssen in die richtigen Symbole, zb. `-`, `|`, `/` usw. übersetzt werden, sodass die Karte angezeigt werden kann. Die Methode
+```python
+def _createPrintBuffer(self, defaultColor:str ="", safeColor:str ="", markColor:str ="") -> list[list[str]]
+```
+übernimmt diese Aufgabe. `defaultColor` ist das Konsolenzeichen für die Standardfarbe (immer weiß), `safeColor` ist die grüne Farbe und `markColor` ist die Farbe zum Markieren. Diese Farben sind nur Argumente, weil ich mir die Möglichkeit aufbehalten wollte, diese am Ende noch anzupassen, um das User-Interface so schön wie möglich zu gestalten.
+```python
+buffer = [[("." if i % 2 != 0 and j % 2 != 0 else " ") for i in range(self.size * 2 + 1)] for j in range(self.size * 2 + 1)]
+
+# Durchlauf, um Räume und Farben zu platzieren
+room: Room
+for room in self.rooms:
+    
+    roomChar = "#"
+    if room.isRevealed:
+        roomChar = safeColor + str(room.dangerousNearbyRooms) + defaultColor
+    
+    elif room.isMarked:
+        roomChar = markColor + "#" + defaultColor
+    
+    buffer[room.y*2+1][room.x*2+1] = roomChar
+```
+Zuerst wird ein Bufferobjekt mit der Kartengröße erstellt, dass die Zeichen am Ende beinhaltet. Die Größe ist hier `self.size * 2 + 1`, da auch Platz für Leerzeichen gehalten wird, damit die Karte am Ende groß und nicht gequetscht erscheint. Es wird dann für alle Räume an die jeweilige Position eine Raute `#` platziert.
+```python
+# erster Durchlauf um die Wege zu platzieren
+for room in self.getRooms():
+    for neighbor in self.getNeighbouringRoomsWithConnection(room):
+        posOffsetX = neighbor.x - room.x
+        posOffsetY = neighbor.y - room.y
+        
+        directionIndex = getDirectionByPositionOffset( (posOffsetX, posOffsetY) )
+        char = getTextCharacterByDirection(directionIndex)
+        
+        buffer[room.y*2 + posOffsetY + 1][room.x*2 + posOffsetX + 1] = char 
+            
+```
+Daraufhin werden die Wege zwischen den Räumen platziert. Der Charakter, der am Ende an dieser Stelle steht, wird durch das Offset bestimmt zwischen den beiden Räumen bestimmt. Deshalb gibt es in `mapHelper.py` in `source/map` eine Helfer-Funktion, die für ein bestimmtes Offset den richtigen Text-Charakter zurückgibt. Dieser wird dann an die richtige Stelle platziert.
+```python
+for room in self.getRooms():
+  for neighbor in self.getNeighbouringRoomsWithConnection(room):
+      posOffsetX = neighbor.x - room.x
+      posOffsetY = neighbor.y - room.y
+      
+      directionIndex = getDirectionByPositionOffset( (posOffsetX, posOffsetY) )
+      char = getTextCharacterByDirection(directionIndex)
+      if char == "/" and buffer[room.y*2+posOffsetY + 1][room.x*2+posOffsetX + 1] == "\\":
+          char = "X"
+          buffer[room.y*2 + posOffsetY + 1][room.x*2 + posOffsetX + 1] = char 
+      if char == "\\" and buffer[room.y*2+posOffsetY + 1][room.x*2+posOffsetX + 1] == "/":
+          char = "X"
+          buffer[room.y*2 + posOffsetY + 1][room.x*2 + posOffsetX + 1] = char 
+return buffer
+```
+Der dritte Durchlauf ist einzig und allein dafür Verantwortlich, doppelte Querverbindungen `X` zwischen Räumen zu platzieren. Hierbei wird geprüft, ob ein Weg eine doppelte Überlappung durch einen Weg `/` und einen Weg `\` hat. Wenn ja, wird an diese Stelle ein `X` platziert. Mehrfaches Testen hat ergeben, dass es keine effizientere Methode gibt als diese hier. Es wurde versucht, den dritten und zweiten Durchgang miteinander zu verschachteln, es kam aber immer wieder zu Problemen und falsch platzierten Wegen, wobei die aktuelle Methode die einzige war, die funktioniert.
+
+## Die Hauptschleife
+Die Hauptschleife ist in der `game.py` und ist das Gehirn, oder zumindest, der Frontallappen des Spiels. Hier befindet sich oberflächliche Logik und die GameLoop. Nach ein paar Initialisierungen, wobei die Karte erstellt und generiert wird geht das Spiel in die Hauptschleife:
+```python
+while not shouldExit:
+  clearConsole()
+
+  gameMap.print(defaultColor=Color.reset, safeColor=Color.green, markColor=Color.red)
+  printLegend(userMode, jokerAmount)
+
+  userInputResult = handleUserInput(Color.yellow, Color.reset, MAP_SIZE)
+  if userInputResult is not None:
+
+    # Modus ändern
+    if userInputResult.type == UserInputResultType.CHANGE_MODE:
+        userMode = UserMode.SCAN if userMode == UserMode.MARK else UserMode.MARK
+
+    elif userInputResult.type == UserInputResultType.REVEAL_ROOM:
+        if handleScanOrReveal(userInputResult=userInputResult, gameMap=gameMap, userMode=userMode):
+            shouldExit = True
+        input()
+
+    elif userInputResult.type == UserInputResultType.JOKER_ROOM:
+        if jokerAmount > 0:
+            success = jokerRoomInformation(userInputResult=userInputResult, gameMap=gameMap)
+            input()
+            if success:
+                jokerAmount -= 1
+        else:
+            print("Du keine Joker mehr übrig.")
+            input()
+
+    gameWon = gameMap.isGameWon()
+
+    if gameWon:
+        shouldExit = True
+```
+Diese Schleife läuft für die gesamte Dauer eines Spiels. Nachdem die Karte und die Legende auf der Konsole angezeigt wurden, wird mithilfe der Datei `userInput.py` das User-Input abgegriffen und zurückgegeben. Handelt es sich dabei um den Typ `CHANGE_MODE`, wird der Modus gewechselt. Handelt es sich um einen Scan, wird versucht, die Koordinaten die ebenfalls zurückgegeben wurden, zu scannen. Diese Methode gibt `TRUE` zurück, wenn eine Falle gescannt wurde. Dann endet das Spiel. Falls ein Joker ausgewählt wurde, wird, falls man noch Joker übrig hat, versucht mithilfe des Jokers ein Raum zu bestimmen. Der Rest ist selbsterklärend.
+
+## Userinput
+In der `userInput.py` in `source/ui` wird der User-Input wie folgt aufgenommen:
+
+```python
+def handleUserInput(userInputColor: str, resetColor: str, mapSize: int) -> UserInputResult | None:
+  c = userInputColor # für bessere Lesbarkeit im folgenden Code
+  r = resetColor
+  print("\n'" + c + "m" + r + "' für Moduswechsel \t'" + c + "Enter" + r + "' für Koordinateneingabe\t'"
+          + c + "j" + r + "'" + " für Joker" + r)
+  userInput: str = input()
+  if userInput.lower() == "m":
+      return UserInputResult(UserInputResultType.CHANGE_MODE)
+  
+  if userInput == "":
+      print("Geben Sie hintereinander eine Zeilenzahl und eine Spaltenzahl ein. '" + c + "x" + r + "' zum Abbrechen.")
+      
+      yCoord = getIntegerInput("Zeilenzahl: ", 0, mapSize-1)
+      
+      # wenn abgebrochen wurde
+      if yCoord == -1:
+          return None
+      
+      xCoord = getIntegerInput("Spaltenzahl: ", 0, mapSize-1)
+      
+      # wenn abgebrochen wurde
+      if xCoord == -1:
+          return None
+      
+      xCoordCopy = xCoord
+      yCoordCopy = yCoord
+      return UserInputResult(UserInputResultType.REVEAL_ROOM, revealX=xCoordCopy, revealY=yCoordCopy)
+```
+Zuerst wird die Statusleiste auf der Konsole angezeigt. Ein `m` als Input gibt dann ein `UserInputResult` zurück, indem der Modus-Wechsel angegeben ist. Durch eine Leertaste kann die Eingabe der Koordinaten gestartet werden, wobei nacheinander die Koordinaten abgefragt werden. Die Methode `getIntegerInput` ist für die Eingabe eines Inputs, das ein Int sein muss. Ansonsten wird der User gebeten, ein weiteren Input zu machen. Wird ein `x` eingegeben, wird die zurückgegebene Koordinate auf `-1` gesetzt, sodass diese abgefangen werden kann und der Vorgang abgebrochen werden kann. Wenn nicht abgebrochen wurde, wird hier auch ein `UserInputResult` zurückgegeben, wobei hier auch die Koordinaten eingegeben werden. `REVEAL_ROOM` steht hier für Markieren und Scannen. Ein `UserInputResult` ist wie folgt definiert:
+
+```python
+class UserInputResultType(Enum):
+    """ Enum für die Art, die ein InputResult haben kann """
+    CHANGE_MODE = 0
+    REVEAL_ROOM = 1
+    JOKER_ROOM = 2
+    
+class UserInputResult():
+    """ Das tatsächliche Ergebnis eines UserInputs, zusammengefasst in einer Klasse """
+    def __init__(self, userInputResult: UserInputResultType, revealX: int=0, revealY: int=0) -> None:
+        self.type = userInputResult
+        self.revealX = revealX
+        self.revealY = revealY
+        if not (isinstance(revealX, int) and isinstance(revealY, int)):
+            raise ValueError("X and Y Reveal coordinates must be valid interger values")
 ```
 
-Der Projektaufbau folgt den Bestimmungen in den Anforderungen an das Projekt.
+Ein `UserInputResult` hat einen Typ (`CHANGE_MODE`, `REVEAL_ROOM` und `JOKER_ROOM`) und Koordinaten, wobei diese im Falle von `CHANGE_MODE` nicht relevant sind. Diese Klasse dient als Bündelung des Rückgabeergebnisses und ist, finde ich, schöner als drei verschiedene Variablen als Tupel zurückzugeben.
 
 # Programmablauf
+Nachdem die wichtigen Funktionen anhand des Codes erklärt wurden, wird in diesem Kapitel der Programmablauf anhand eines Programmablaufdiagramms gezeigt:
+
+<div style="float: left; margin-right: 15px;">
+  <img src="images/pap.png" alt="Bildbeschreibung" />
+</div>
+
+*Programmablaufplan mit draw.io*
+
+Der Programmablauf zeigt den strukturierten Ablauf. Das Spiel wird in der `main.py` gestartet und die Karte wird generiert. Anschließend werden die Karte und die Legende in der Konsole angezeigt. Es wird nach User Input gefragt - ist dieser Input valide geht es weiter - ansonsten muss man eben nochmal einen Userinput machen. Entsprechende Fehlermeldungen wurden bereits erläutert. Nun wird der Input bearbeitet, es kann entweder:
+    - ein Raum markiert werden
+    - ein Raum gescannt werden (ggf. mit Joker)
+    - der Modus geändert werden
+
+Wird ein Raum gescannt, kann es vorkommen, dass eine Falle gescannt wurde, wenn ja, ist das Spiel sofort zu Ende. Ist das nicht der Fall wird nach dem Durchführen der Aktion generell geprüft ob das Spiel vorbei ist, weil alle Nicht-Gefährlichen Felder aufgedeckt wurden. Wenn ja, ist das Spiel zu Ende, wenn nein, geht die Hauptschleife wieder von vorne los.
+
+<br><br><br><br><br><br><br><br><br><br><br><br>
+
+# Bibliotheken
+
+Verwendete Module:
+* `random`: Für die zufällige Map-Generation 
+* `os`: Für das leeren der Konsole über einen System-Aufruf
+
+Verwendet zum Testen:
+* `unittest`: Für die Unittests
+* `coverage`, Version: `7.8.0`: Für die Testabdeckung
+* `pylint`, Version: `3.3.6`: Für die Testabdeckung
+* `mypy`, Version: `1.15.0`: Für die Testabdeckung
+
 # Testergebnisse und Analyse
