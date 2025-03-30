@@ -63,7 +63,23 @@ Eine Karte, die einen Raum darstellt könnte ungefähr so aussehen, wobei jede R
 
 Es muss irgendwie für den User möglich sein, dem Spiel mitzuteilen, welcher Raum als nächstes gescannt werden soll. Es wäre hier nicht praktikabel jedem Raum einfach eine Nummer zu geben den User nach der Nummer des Raumes zu fragen, den er aufdecken möchte, weil es hier Probleme mit einer kompakten Darstellung gäbe. Wie will man denn wie in Abbildung 2 gezeigt, jetzt noch wohlmöhlich 2-stellige Zahlen an die Räume notieren, ohne dass das Userinterface unschön wird?
 
-Eine einfachere Methode für den User, mit unter schwerer im Code, ist die Möglichkeit für den User mithilfe der Pfeiltasten oder den Tasten WASD den Raum der gescannt werden soll auszuwählen. Der User sollte hier Feedback durch eine farbige Markierung des aktuell ausgewählten Raumes **<span style="color:green;">#</span>** bekommen.
+Eine einfachere Methode für den User, mit unter schwerer im Code, ist die Möglichkeit für den User mithilfe der Pfeiltasten oder den Tasten WASD den Raum der gescannt werden soll auszuwählen. Allerdings entfällt diese Methode, da dies nicht mit den uns zur Verfügung stehenden Modulen umsetzbar ist.
+
+```
+    1   2   3   4   5
+
+1   1 - #       # - #
+2     \ |     / | \
+3       2 - 1 - # - #
+4       |       | X |
+5       #       # - 1
+```
+*Abbildung 3 User wählt einen Raum zum Scannen aus*
+
+Um dem User das Scannen eines Raumes zu ermöglichen, muss der User nun durch X- und Y-Koordinate einen Raum auswählen. Dies geschieht am besten durch ein oder zwei Eingaben, wobei der User entweder im Format `x:y` einen Raum bestimmt oder nacheinander X- und Y-Koordinate eingibt. 
+
+Außerdem sollte der User die Möglichkeit haben, Räume nicht nur zu scannen sondern auch zu _markieren_, wodurch ein Raum mit einer bestimmten Farbe **<span style="color:red;">#</span>** markiert wird. Das hilft dem Spieler sich die Räume zu merken, die er als gefährlich identifiziert.
+
 
 ## Grundlegende Funktionen
 In diesem Kapitel werden die grundlegenden Funktionen des Projektes erläutert und inwiefern die oben genannten Vorüberlegungen tatsächlich im Code umgesetzt wurden.
@@ -81,8 +97,9 @@ Zum Spielstart ist das Spielfeld leer. Das Spielfeld wird in jedem Spiel neu gen
     6b: ansonsten einen Raum in diese Richtung erzeugen und Verbindung herstellen
   7: gehe so lange zu 4 bis genügend Räume existieren
 
-  8: Solange alle Räume die nur eine Verbindung haben entfernen, bis nur noch Räume mit mehr als einer Verbindungen übrig bleiben
+  8: Solange alle Räume die nur eine Verbindung haben entfernen, bis nur noch Räume mit mehr als einer Verbindungen übrig bleiben (optional)
 ```
+
 Anschließend müssen Räume als _sicher_ oder _gefährlich_ klassifiziert werden:
 ```
   1. gehe alle Räume durch
@@ -90,6 +107,8 @@ Anschließend müssen Räume als _sicher_ oder _gefährlich_ klassifiziert werde
   3. gehe nochmal alle Räume durch
     4. setze für jeden Raum die Anzahl an gefährlichen Nachbarräumen, sodass diese später nicht berechnet werden muss
 ```
+
+
 
 # Programmarchitektur
 

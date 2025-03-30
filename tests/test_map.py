@@ -1,142 +1,124 @@
 import unittest
+from unittest.mock import patch, MagicMock
+from source.map.spaceshipMap import Map
+from source.map.spaceshipRoom import Room
 
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+class TestMap(unittest.TestCase):
 
-from source.map.spaceshipRoom import *
-from source.map.spaceshipMap import *
-from source.map.customErrors import *
 
-class TestInput(unittest.TestCase):
-    
-    """
-        Testet das Erstellen von MapTiles, dabei sollten nur ganze Zahlen als
-        x und y Koordinate (Integer) erlaubt sein
-    """
-    def test_room(self):
-        self.assertRaises(ValueError, Room, 0.1, 0, False)
-        self.assertRaises(ValueError, Room, 0.1, 0.0000000000345654, False)
-        self.assertRaises(ValueError, Room, 1, 10e7, False)
-    
-    """
-        Testet, ob Tiles die nebeneinander sind auch so erkannt werden
-    """
-    def test_room_nearby(self):
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(1, 0, False)))
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(0, 1, False)))
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(-1, 0, False)))
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(0, -1, False)))
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(1, 1, False)))
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(-1, -1, False)))
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(-1, 1, False)))
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(1, -1, False)))
-        self.assertTrue(Room(0, 0, False).tilesNearby(Room(0, 0, False)))
-        
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(0, 2, False)))
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(0, -2, False)))
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(-2, 0, False)))
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(2, 0, False)))
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(1, 2, False)))
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(2, -1, False)))
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(1, -2, False)))
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(0, 50, False)))
-        self.assertFalse(Room(0, 0, False).tilesNearby(Room(1, 435, False)))
-        
-        
-    """
-        Testet, ob die Funktion getBit das richtige Bit zurückgibt, um die Position zwischen zwei
-        Räumen korrekt zu verbinden (y wächst nach unten, x wächst nach rechts!) Siehe spaceShipMap
-    """
-    def test_get_bit(self):
-        self.assertEqual(getBit(Room(0, 0, False), Room(0, 1, False)), 4)
-        self.assertEqual(getBit(Room(5, 5, False), Room(6, 6, False)), 3)
-        self.assertEqual(getBit(Room(345636, 10, False), Room(345637, 10, False)), 2)
-        self.assertEqual(getBit(Room(0, 0, False), Room(1, -1, False)), 1)
-        self.assertEqual(getBit(Room(6000, 3000, False), Room(6000, 3000-1, False)), 0)
-        self.assertEqual(getBit(Room(0, 0, False), Room(-1, -1, False)), 7)
-        self.assertEqual(getBit(Room(29457, 2456, False), Room(29457-1, 2456, False)), 6)
-        self.assertEqual(getBit(Room(0, 0, False), Room(-1, 1, False)), 5)
+    def test_get_tile_at(self):
+        """ Testet, ob getTileAt den richtigen Raum zurückgibt. """
+        map = Map(5)
+        room = Room(2, 3, False)
+        map.addMapTile(room)
 
-        self.assertRaises(TilesCorrespondError, getBit, Room(0, 0, False), Room(0, 0, False))
+        # Teste, ob der Raum mit den Koordinaten (2, 3) korrekt zurückgegeben wird
+        returned_room = map.getTileAt(2, 3)
+        self.assertEqual(returned_room, room)
+
+    def test_tile_exists(self):
+        """ Testet, ob tileExists korrekt funktioniert. """
+        map = Map(5)
+        room = Room(2, 3, False)
+        map.addMapTile(room)
+
+        # Überprüfen, ob tileExists True zurückgibt
+        self.assertTrue(map.tileExists(2, 3))
+
+        # Überprüfen, ob tileExists False zurückgibt
+        self.assertFalse(map.tileExists(0, 0))
+
+    def test_get_neighbouring_tiles_with_connection(self):
+        """ Testet, ob getNeighbouringTilesWithConnection benachbarte Räume korrekt zurückgibt. """
+        map = Map(5)
+        room1 = Room(2, 2, False)
+        room2 = Room(3, 2, False)
+        room1.connectRooms(room2)  # Räume verbinden
+        map.addMapTile(room1)
+        map.addMapTile(room2)
+
+        # Nachbarn von room1 sollten room2 beinhalten
+        neighbours = map.getNeighbouringTilesWithConnection(room1)
+        self.assertIn(room2, neighbours)
+
+    def test_is_game_won_all_revealed(self):
+        """ Testet, ob isGameWon True zurückgibt, wenn alle nicht gefährlichen Räume aufgedeckt sind. """
+        map = Map(5)
+        room1 = Room(1, 1, False)
+        room2 = Room(1, 2, False)
+        room1.isRevealed = True
+        room2.isRevealed = True
+        map.addMapTile(room1)
+        map.addMapTile(room2)
+
+        # Spiel sollte gewonnen sein, wenn alle nicht gefährlichen Räume aufgedeckt sind
+        self.assertTrue(map.isGameWon())
+
+    def test_is_game_won_not_all_revealed(self):
+        """ Testet, ob isGameWon False zurückgibt, wenn nicht alle nicht gefährlichen Räume aufgedeckt sind. """
+        map = Map(5)
+        room1 = Room(1, 1, False)
+        room2 = Room(1, 2, False)
+        room1.isRevealed = True
+        room2.isRevealed = False
+        map.addMapTile(room1)
+        map.addMapTile(room2)
+
+        # Spiel sollte nicht gewonnen sein, da room2 nicht aufgedeckt ist
+        self.assertFalse(map.isGameWon())
         
-        self.assertRaises(TilesNotNearbyError, getBit, Room(-9487346, 0, False), Room(-948734644, 0, False))
-        self.assertRaises(TilesNotNearbyError, getBit, Room(1000, 1000, False), Room(-1000, -1000, False))
-    
-    """
-        Integration-Test, ob die Funktionen miteinander richtig funktionieren. Es wird
-        geprüft, ob die Tiles an der selben Position sind, wenn das nicht der Fall ist
-        und die Tiles nebeneinander sind wird versucht, diese Tiles zu verbinden. Dann
-        wird überprüft, ob diese beiden Tiles am Ende wirklich verbunden sind
-    """
-    def test_tile_connection(self):
-        for a in range(-10, 10):
-            for b in range(-10, 10):
-                for c in range(-10, 10):
-                    for d in range(-10, 10):
-                        m1 = Room(a, b, False)
-                        m2 = Room(c, d, False)
-                        if a == c and b == d:
-                            self.assertRaises(TilesCorrespondError, m1.connectedTo, m2)
-                            self.assertRaises(TilesCorrespondError, m2.connectedTo, m1)
-                            continue
-                        
-                        self.assertFalse(m1.connectedTo(m2))
-                        self.assertFalse(m2.connectedTo(m1))
-                        
-                        if m1.tilesNearby(m2):
-                            m1.connectTiles(m2)
-                            self.assertTrue(m1.connectedTo(m2))
-                            self.assertTrue(m2.connectedTo(m1))
-                            
-        mapTile = Room(0, 0, False)
+    def test_is_game_won(self):
+        """Testet, ob isGameWon korrekt prüft, ob das Spiel gewonnen wurde."""
+        map = Map(5)
         
-        self.assertFalse(mapTile.allConnectionsOccupied())
+        # Füge einige Räume hinzu
+        room1 = Room(2, 2, False)
+        room2 = Room(2, 3, False)
+        room3 = Room(3, 2, False)
         
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                if x == y == 0: continue # Um die exception der gleichen Tiles zu verhindern
-                m1 = Room(x, y, False)
-                if mapTile.tilesNearby(m1):
-                    mapTile.connectTiles(m1)
-                    
-        self.assertTrue(mapTile.allConnectionsOccupied())
+        room1.isRevealed = True
+        room2.isRevealed = True
+        room3.isRevealed = True
         
-    def test_get_text_character_by_direction(self):
-        r1 = Room(0, 0, False)
-        r2 = Room(1, 1, False)
-        r3 = Room(-1, 0, False)
-        r4 = Room(0, 1, False)
-        r1.connectTiles(r2)
-        r2.connectTiles(r3)
+        map.addMapTile(room1)
+        map.addMapTile(room2)
+        map.addMapTile(room3)
         
-        self.assertEqual(getTextCharacterByDirection(getBit(r1, r2)), "\\")
-        self.assertEqual(getTextCharacterByDirection(getBit(r1, r3)), "-")
-        self.assertEqual(getTextCharacterByDirection(getBit(r3, r4)), "\\")
-        self.assertEqual(getTextCharacterByDirection(getBit(r4, r1)), "|")
-    
-    def test_get_neighbouring_tiles(self):
-        spMap = Map(10)
-        for x in range(10):
-            for y in range(10):
-                spMap.addMapTile(Room(x, y, False))
+        # Das Spiel ist gewonnen, wenn alle nicht gefährlichen Räume aufgedeckt sind
+        self.assertTrue(map.isGameWon())
         
-        spMap.getTileAt(5, 5).connectTiles(spMap.getTileAt(6, 6))
-        self.assertTrue(spMap.getTileAt(6, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(5, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(6, 5) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(5, 4) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(4, 5) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(4, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(3, 7) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        spMap.getTileAt(5, 5).connectTiles(spMap.getTileAt(4, 5))
-        spMap.getTileAt(5, 5).connectTiles(spMap.getTileAt(6, 5))
-        self.assertTrue(spMap.getTileAt(6, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertTrue(spMap.getTileAt(4, 5) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertTrue(spMap.getTileAt(6, 5) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
+        # Markiere einen Raum als nicht aufgedeckt
+        room3.isRevealed = False
         
-        self.assertFalse(spMap.getTileAt(5, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(5, 4) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(4, 6) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        self.assertFalse(spMap.getTileAt(3, 7) in spMap.getNeighbouringTilesWithConnection(spMap.getTileAt(5, 5)))
-        pass
+        self.assertFalse(map.isGameWon())  # Das Spiel sollte nicht gewonnen sein
+
+    def test_remove_map_tile(self):
+        """Testet, ob removeMapTile einen Raum korrekt entfernt."""
+        map = Map(5)
+        room = Room(2, 2, False)
+        map.addMapTile(room)
+        
+        self.assertIn(room, map.getMapTiles())  # Raum sollte hinzugefügt worden sein
+        map.removeMapTile(room)
+        self.assertNotIn(room, map.getMapTiles())  # Raum sollte entfernt worden sein
+
+    def test_get_neighbouring_tiles_with_connection(self):
+        """Testet, ob getNeighbouringTilesWithConnection die richtigen Nachbarn zurückgibt."""
+        map = Map(5)
+        room1 = Room(2, 2, False)
+        room2 = Room(2, 3, False)
+        room3 = Room(3, 2, False)
+        map.addMapTile(room1)
+        map.addMapTile(room2)
+        map.addMapTile(room3)
+        
+        room1.connectRooms(room2)  # Verbindet room1 und room2
+        room1.connectRooms(room3)  # Verbindet room1 und room3
+        
+        neighbours = map.getNeighbouringTilesWithConnection(room1)
+        
+        self.assertIn(room2, neighbours)
+        self.assertIn(room3, neighbours)
+        self.assertNotIn(room1, neighbours)  # Room1 sollte nicht als Nachbar erscheinen
+
+

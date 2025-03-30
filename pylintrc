@@ -1,0 +1,26 @@
+[BASIC]
+argument-naming-style=camelCase
+attr-naming-style=camelCase
+class-attribute-naming-style=camelCase
+docstring-min-length=5
+function-naming-style=camelCase
+method-naming-style=camelCase
+module-naming-style=camelCase
+variable-naming-style=camelCase
+
+[DESIGN]
+max-attributes=10
+
+[FORMAT]
+max-line-length=160
+
+[MASTER]
+disable=
+    C0303, # Trailing Whitespace
+    C0116, # missing-function-docstring
+    R0903, # too few public methods (damit bei der Color-Klasse nicht gemeckert wird)
+
+
+[MESSAGES CONTROL]
+# Die maximale Anzahl der Return-Statements pro Funktion
+max-returns=8

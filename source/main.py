@@ -1,10 +1,10 @@
+""" Startet das Spiel """
+
 import game
 
-def main():
+def main() -> None:
     print("Spiel starten.")
     game.start()
-    pass
-
-
+    
 if __name__ == "__main__":
     main()

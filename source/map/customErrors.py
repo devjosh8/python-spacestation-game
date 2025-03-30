@@ -1,17 +1,11 @@
-"""
-        Exception wenn Tiles nicht nebeneinander sind
-"""
-class TilesNotNearbyError(Exception):
+""" Custom Errors für Fehlerbehandlung bei Rooms"""
+
+class RoomsNotNearbyError(Exception):
     
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Tiles are not nearby!")
 
-
-"""
-        Exception wenn Tiles die selbe Position haben
-"""
-class TilesCorrespondError(Exception):
+class RoomsHaveOverlappingPositionError(Exception):
     
-
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Tiles have the same position!")

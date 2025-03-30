@@ -1,8 +1,7 @@
-
-
+""" Helfer-Funktionen für die Karte, die relative Koordinaten umwandeln kann in Richtungsindezes """
 # gibt die Richtung in eine Verbindung anhand der Nummer der Richtung zurück
 # wichtig! Da  die Verbindung für den Buffer genutzt wird, ist die Y-Koordinate invertiert!
-def getPositionOffsetByDirection(direction):
+def getPositionOffsetByDirection(direction: int) -> tuple[int, int]:
     match(direction):
         case 0:
             return (0, -1)
@@ -22,7 +21,7 @@ def getPositionOffsetByDirection(direction):
             return (-1, -1)
     raise ValueError("Directional number could not be converted into acutal coordinates")
 
-def getDirectionIndexByPositionOffset(position):
+def getDirectionByPositionOffset(position: tuple[int, int]) -> int:
     match(position):
         case (0, -1):
             return 0
@@ -44,7 +43,7 @@ def getDirectionIndexByPositionOffset(position):
 
 # gibt den richtigen Text-Charakter für einen gesetzten Bit in der connections-Bit-Maske
 # eines Rooms zurück (siehe spaceshipRoom.py)
-def getTextCharacterByDirection(direction):
+def getTextCharacterByDirection(direction: int) -> str:
     match(direction):
         case 0:
             return "|"

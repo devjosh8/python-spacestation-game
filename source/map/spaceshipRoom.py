@@ -1,10 +1,13 @@
+""" enthält die Klasse für einen Raum """
+
 from __future__ import annotations
-from .customErrors import *
+from .customErrors import RoomsHaveOverlappingPositionError, RoomsNotNearbyError
 
 class Room():
-    
-    def __init__(self, x, y, isDangerous=False):
+    """ Raum-Klasse mit diverser Logik für Räume """
+    def __init__(self, x: int, y: int, isDangerous:bool =False) -> None:
         self.isDangerous = isDangerous
+        self.isMarked = False
         self.connections = 0b00000000       # Alle Verbindungen auf 0 initialisieren
         self.x = x
         self.y = y
@@ -16,7 +19,7 @@ class Room():
             raise ValueError("X and Y must be integers for map tile position")
     
     # sind zwei Zellen nebeneinander?
-    def tilesNearby(self, other: Room):
+    def roomsNearby(self, other: Room) -> bool:
         if abs(self.x - other.x) <= 1:
             if abs(self.y - other.y) <= 1:
                 return True
@@ -24,16 +27,15 @@ class Room():
         return False
     
     # ist das Bit in den Connections gesetzt?
-    def connectedTo(self, other: Room):
-        if not self.tilesNearby(other):
+    def connectedTo(self, other: Room) -> bool:
+        if not self.roomsNearby(other):
             return False
-        bitConnection = getBit(self, other);
+        bitConnection = getBit(self, other)
         return ((1 << bitConnection) & self.connections) > 0
     
     # verbindet zwei Zellen miteinander (dh. schreibt die Connection-Bits um)
-    def connectTiles(self, other: Room):
-        # Zellen dürfen sich um maximal 1 bei beiden Koordinaten unterscheiden
-        if self.tilesNearby(other):
+    def connectRooms(self, other: Room) -> bool:
+        if self.roomsNearby(other):
             
             # Zellen jetzt verbinden
             bitConnectionToOther = getBit(self, other)
@@ -45,15 +47,34 @@ class Room():
             return True
         return False    
     
+    def disconnectRooms(self, other: Room) -> bool:
+        if self.roomsNearby(other):
+            
+            # Zellen jetzt nicht mehr verbinden (logisches XOR => nur das Bit was wir entfernen wollen, wird 0)
+            bitConnectionToOther = getBit(self, other)
+            self.connections = self.connections ^ 1 << bitConnectionToOther
+            
+            bitConnectionFromOther = getBit(other, self)
+            other.connections = other.connections ^ 1 << bitConnectionFromOther
+            
+            return True
+        return False
+    
     # gibt True zurück, wenn der Raum in alle Richtungen umgeben ist
-    def allConnectionsOccupied(self):
-        return (self.connections == 0b11111111)
+    def allConnectionsOccupied(self) -> bool:
+        return self.connections == 0b11111111
 
-
-
+    def getNumberOfConnections(self) -> int:
+        connections = 0
+        for i in range(8):
+            if (1<<i) & self.connections > 0:
+                connections+=1
+        
+        return connections
+        
 
 # Berechnet im Bezug auf one das Bit das gesetzt sein muss, damit die beiden verbunden sind
-def getBit(one: Room, two: Room):
+def getBit(one: Room, two: Room) -> int:
     xDiff = two.x - one.x
     yDiff = two.y - one.y
     
@@ -61,7 +82,7 @@ def getBit(one: Room, two: Room):
         case 0:
             match(yDiff):
                 case 0:
-                    raise TilesCorrespondError
+                    raise RoomsHaveOverlappingPositionError
                 case 1:
                     return 4
                 case -1:
@@ -83,4 +104,4 @@ def getBit(one: Room, two: Room):
                 case -1:
                     return 7
             
-    raise TilesNotNearbyError
+    raise RoomsNotNearbyError

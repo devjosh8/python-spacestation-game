@@ -26,3 +26,7 @@
 
 ## Ausführen
 Die Hauptdatei ist `main.py` in `source/main.py`. 
+
+# Tests und Codevalidation
+
+Pylint: `PYTHONPATH=. pylint main.py` im `source`-Ordner ausführen
