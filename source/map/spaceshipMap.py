@@ -23,7 +23,7 @@ class Map():
     """ Map, Einheit für die Karte, enthält Räume und Logikfunktionen """
     def __init__(self, size: int, dangerousRoomsPropability:float =1/3) -> None:
         self.size = size
-        self.tiles: list[Room] = [] # Speichert die ganzen Tiles, die die Map ausmachen
+        self.rooms: list[Room] = [] # Speichert die ganzen Tiles, die die Map ausmachen
         self.dangerousRoomsPropability = dangerousRoomsPropability
     
     # Die Karte generieren
@@ -37,11 +37,11 @@ class Map():
                 genY = int(self.size / 2)
                 
                 newTile = Room(genX, genY, False)
-                self.addMapTile(newTile)
+                self.addRoom(newTile)
                 
             else:
                 # zufälligen Raum auswählen
-                selectedTile:Room = random.choice(self.getMapTiles())
+                selectedTile:Room = random.choice(self.getRooms())
                 # weitermachen, wenn alle Richtungen blockiert sind
                 if selectedTile.allConnectionsOccupied():
                     continue
@@ -61,7 +61,7 @@ class Map():
                 # befindet sich an dieser Stelle bereits ein Tile?
                 # wenn ja, beide Tiles verbinden und abbrechen
                 tileFound = False
-                for lookupTile in self.getMapTiles():
+                for lookupTile in self.getRooms():
                     if lookupTile.x == newX and lookupTile.y == newY:
                         selectedTile.connectRooms(lookupTile)
                         tileFound = True
@@ -72,7 +72,7 @@ class Map():
                 # ansonsten neues Tile erstellen und mit dem aktuellen verbinden
                 newTile = Room(selectedTile.x + xOffset, selectedTile.y + yOffset)
                 newTile.connectRooms(selectedTile)
-                self.addMapTile(newTile)
+                self.addRoom(newTile)
                 
             generatedRooms+=1
             
@@ -85,7 +85,7 @@ class Map():
         while roomWithSingleConnectionExist:
             roomToRemove: Room
             for roomToRemove in roomsToRemoveNextIteration:
-                neighbours = self.getNeighbouringTilesWithConnection(roomToRemove)
+                neighbours = self.getNeighbouringRoomsWithConnection(roomToRemove)
                 # Prämisse => roomToRemove hat nur einen Nachbar
                 
                 if len(neighbours) != 1:
@@ -94,12 +94,12 @@ class Map():
                 for neighbouringRoom in neighbours:
                     roomToRemove.disconnectRooms(neighbouringRoom)
                 
-                self.removeMapTile(roomToRemove)
+                self.removeRoom(roomToRemove)
             
             roomsToRemoveNextIteration.clear()
             
             roomWithSingleConnectionExist = False
-            for room in self.getMapTiles():
+            for room in self.getRooms():
                 if room.getNumberOfConnections() == 1:
                     roomsToRemoveNextIteration.append(room)
                     roomWithSingleConnectionExist = True 
@@ -108,18 +108,18 @@ class Map():
     def _generateDangerousRooms(self) -> None:
         # zufällig gefährliche Räume generieren
         room: Room
-        for room in self.getMapTiles():
+        for room in self.getRooms():
             if random.randint(0, int(1/self.dangerousRoomsPropability)) == 0:
                 room.isDangerous = True
 
         # der Startraum ist in jedem Fall nicht gefährlich
-        self.getStartingTile().isDangerous = False
+        self.getStartingRoom().isDangerous = False
 
         # Für jeden Raum die Anzahl an gefährlichen Nachbarräumen setzen
-        for room in self.getMapTiles():
+        for room in self.getRooms():
             connectedRooms: Room
             dangerousNearbyRooms = 0
-            for connectedRooms in self.getNeighbouringTilesWithConnection(room):
+            for connectedRooms in self.getNeighbouringRoomsWithConnection(room):
                 if connectedRooms.isDangerous:
                     dangerousNearbyRooms+=1
             room.dangerousNearbyRooms = dangerousNearbyRooms
@@ -127,14 +127,14 @@ class Map():
             if not room.isDangerous and random.randint(0, 1) == 0:
                 room.isRevealed = True
             
-    def addMapTile(self, tile: Room) -> None:
-        self.tiles.append(tile)
+    def addRoom(self, tile: Room) -> None:
+        self.rooms.append(tile)
         
-    def removeMapTile(self, tile: Room) -> None:
-        self.tiles.remove(tile)
+    def removeRoom(self, tile: Room) -> None:
+        self.rooms.remove(tile)
         
-    def getMapTiles(self) -> list[Room]:
-        return self.tiles
+    def getRooms(self) -> list[Room]:
+        return self.rooms
     
     
     def _createPrintBuffer(self, defaultColor:str ="", safeColor:str ="", markColor:str ="") -> list[list[str]]:
@@ -146,7 +146,7 @@ class Map():
 
         # Durchlauf, um Räume und Farben zu platzieren
         tile: Room
-        for tile in self.tiles:
+        for tile in self.rooms:
             
             roomChar = "#"
             if tile.isRevealed:
@@ -158,8 +158,8 @@ class Map():
             buffer[tile.y*2+1][tile.x*2+1] = roomChar
         
         # erster Durchlauf um die Wege zu platzieren
-        for tile in self.getMapTiles():
-            for neighbor in self.getNeighbouringTilesWithConnection(tile):
+        for tile in self.getRooms():
+            for neighbor in self.getNeighbouringRoomsWithConnection(tile):
                 posOffsetX = neighbor.x - tile.x
                 posOffsetY = neighbor.y - tile.y
                 
@@ -171,8 +171,8 @@ class Map():
         # zweiter Durchlauf, um Diagonalverbindungen richtig zu platzieren 
         # vorheriger Code hat ergeben, dass beide Schleifen NICHT in eine gepackt werden können
         # und seperat gehalten werden müssen!!
-        for tile in self.getMapTiles():
-            for neighbor in self.getNeighbouringTilesWithConnection(tile):
+        for tile in self.getRooms():
+            for neighbor in self.getNeighbouringRoomsWithConnection(tile):
                 posOffsetX = neighbor.x - tile.x
                 posOffsetY = neighbor.y - tile.y
                 
@@ -205,28 +205,28 @@ class Map():
                 print(buffer[x][y], end="")
             print("")
 
-    def getTileAt(self, x:int, y:int) -> Room:
+    def getRoomAt(self, x:int, y:int) -> Room:
         room: Room
-        for room in self.getMapTiles():
+        for room in self.getRooms():
             if room.x == x and room.y == y:
                 return room
         
         raise ValueError("No such room")
     
-    def tileExists(self, x:int, y:int) -> bool:
+    def roomExists(self, x:int, y:int) -> bool:
         room: Room
-        for room in self.getMapTiles():
+        for room in self.getRooms():
             if room.x == x and room.y == y:
                 return True
         return False
     
-    def getStartingTile(self) -> Room:
+    def getStartingRoom(self) -> Room:
         genX = int(self.size / 2)
         genY = int(self.size / 2)
-        return self.getTileAt(genX, genY)
+        return self.getRoomAt(genX, genY)
 
     # gibt alle Nachbar-Räume eines Raums zurück die mit dem Raum "tile" Verbunden sind
-    def getNeighbouringTilesWithConnection(self, tile: Room) -> list[Room]:
+    def getNeighbouringRoomsWithConnection(self, tile: Room) -> list[Room]:
         neighbours = []
         
         for i in range(8):
@@ -234,23 +234,23 @@ class Map():
             if shift & tile.connections != 0:
                 xOffset, yOffset = getPositionOffsetByDirection(i)
                 
-                neighbours.append(self.getTileAt(tile.x + xOffset, tile.y + yOffset))
+                neighbours.append(self.getRoomAt(tile.x + xOffset, tile.y + yOffset))
                 
         return neighbours
     
-    def getNeighbouringTiles(self, tile: Room) -> list[Room]:
+    def getNeighbouringRooms(self, tile: Room) -> list[Room]:
         neighbours = []
         
         for i in range(8):
             xOffset, yOffset = getPositionOffsetByDirection(i)
-            if self.tileExists(xOffset, yOffset):
-                neighbours.append(self.getTileAt(tile.x + xOffset, tile.y + yOffset))
+            if self.roomExists(xOffset, yOffset):
+                neighbours.append(self.getRoomAt(tile.x + xOffset, tile.y + yOffset))
                 
         return neighbours
     
     def isGameWon(self) -> bool:
         win = True
-        for room in self.getMapTiles():
+        for room in self.getRooms():
             if not room.isDangerous and not room.isRevealed:
                 win = False
         return win

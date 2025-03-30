@@ -9,7 +9,8 @@ MAP_SIZE = 10
 
 def start() -> None:
     clearConsole()
-    print("Bitte spielen Sie das Spiel nur in einem großen Terminal! Drücken Sie eine Taste, um das Spiel zu starten...")
+    print("Bitte spielen Sie das Spiel nur in einem großen Terminal! Drücken Sie eine Taste, um das Spiel zu starten...\n" + 
+          "Das Spiel kann jederzeit mit der Tastenkombination STRG+C abgebrochen werden.")
     input()
 
     printGreeter()
@@ -70,11 +71,11 @@ def gameLoop(gameMap: Map) -> None:
 def handleScanOrReveal(userInputResult: UserInputResult, gameMap: Map, userMode: UserMode) -> bool:
     x, y = userInputResult.revealX, userInputResult.revealY
 
-    if not gameMap.tileExists(x, y):
+    if not gameMap.roomExists(x, y):
         print(f"Ein Raum in Zeile {y} an Spalte {x} existiert nicht!")
         return False
 
-    room = gameMap.getTileAt(x, y)
+    room = gameMap.getRoomAt(x, y)
 
     if room.isRevealed:
         if userMode == UserMode.SCAN:
@@ -102,12 +103,12 @@ def handleScanOrReveal(userInputResult: UserInputResult, gameMap: Map, userMode:
 def jokerRoomInformation(userInputResult: UserInputResult, gameMap: Map) -> bool:
     xCoordinate = userInputResult.revealX
     yCoordinate = userInputResult.revealY
-    if gameMap.tileExists(xCoordinate, yCoordinate):
-        inputRoom = gameMap.getTileAt(xCoordinate, yCoordinate)
+    if gameMap.roomExists(xCoordinate, yCoordinate):
+        inputRoom = gameMap.getRoomAt(xCoordinate, yCoordinate)
         if inputRoom.isRevealed:
             print(f"Ein Raum in Zeile {yCoordinate} an Spalte {xCoordinate} ist bereits aufgedeckt.")
-            return True
-        print(f"JOKER: Der Raum in Zeile {yCoordinate} an Spalte {xCoordinate} ist {('eine Falle' if inputRoom.isDangerous else 'ein sicherer Raum')}")
+            return False
+        print(f"JOKER: Der Raum in Zeile {yCoordinate} an Spalte {xCoordinate} ist {('eine Falle!' if inputRoom.isDangerous else 'ein sicherer Raum.')}")
         return True
 
     print(f"Ein Raum in Zeile {yCoordinate} an Spalte {xCoordinate} existiert nicht.")
