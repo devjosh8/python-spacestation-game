@@ -30,49 +30,47 @@ class Map():
     def generateMap(self) -> None:
         generatedRooms = 0
         
+        # in der Mitte der Karte anfangen
+        genX = int(self.size / 2)
+        genY = int(self.size / 2)
+                
+        newRoom = Room(genX, genY, False)
+        self.addRoom(newRoom)
+
         while generatedRooms < 50:
-            # in der Mitte der Karte anfangen
-            if generatedRooms == 0:
-                genX = int(self.size / 2)
-                genY = int(self.size / 2)
-                
-                newTile = Room(genX, genY, False)
-                self.addRoom(newTile)
-                
-            else:
-                # zufälligen Raum auswählen
-                selectedTile:Room = random.choice(self.getRooms())
-                # weitermachen, wenn alle Richtungen blockiert sind
-                if selectedTile.allConnectionsOccupied():
-                    continue
-                
-                # eine zufällige Richtung auswählen -> alle möglichen Richtungen sind 0 in der Bitmaske
-                # alle Bits durchgehen und alle die 0 sind in eine Liste hinzufügen
-                possibleDirections = [i for i in range(8) if (selectedTile.connections & (1 << i)) == 0]
-                randomDirection = random.choice(possibleDirections)
-                xOffset, yOffset = getPositionOffsetByDirection(randomDirection)
-                newX = selectedTile.x + xOffset
-                newY = selectedTile.y + yOffset
-                
-                # neue Koordinaten validieren und gegebenenfalls neu versuchen
-                if newX < 0 or newY < 0 or newX >= self.size or newY >= self.size:
-                    continue
-                            
-                # befindet sich an dieser Stelle bereits ein Tile?
-                # wenn ja, beide Tiles verbinden und abbrechen
-                tileFound = False
-                for lookupTile in self.getRooms():
-                    if lookupTile.x == newX and lookupTile.y == newY:
-                        selectedTile.connectRooms(lookupTile)
-                        tileFound = True
-                
-                if tileFound:
-                    continue
-                
-                # ansonsten neues Tile erstellen und mit dem aktuellen verbinden
-                newTile = Room(selectedTile.x + xOffset, selectedTile.y + yOffset)
-                newTile.connectRooms(selectedTile)
-                self.addRoom(newTile)
+            # zufälligen Raum auswählen
+            selectedRoom:Room = random.choice(self.getRooms())
+            # weitermachen, wenn alle Richtungen blockiert sind
+            if selectedRoom.allConnectionsOccupied():
+                continue
+            
+            # eine zufällige Richtung auswählen -> alle möglichen Richtungen sind 0 in der Bitmaske
+            # alle Bits durchgehen und alle die 0 sind in eine Liste hinzufügen
+            possibleDirections = [i for i in range(8) if (selectedRoom.connections & (1 << i)) == 0]
+            randomDirection = random.choice(possibleDirections)
+            xOffset, yOffset = getPositionOffsetByDirection(randomDirection)
+            newX = selectedRoom.x + xOffset
+            newY = selectedRoom.y + yOffset
+            
+            # neue Koordinaten validieren und gegebenenfalls neu versuchen
+            if newX < 0 or newY < 0 or newX >= self.size or newY >= self.size:
+                continue
+                        
+            # befindet sich an dieser Stelle bereits ein Tile?
+            # wenn ja, beide Tiles verbinden und abbrechen
+            roomFound = False
+            for lookupRoom in self.getRooms():
+                if lookupRoom.x == newX and lookupRoom.y == newY:
+                    selectedRoom.connectRooms(lookupRoom)
+                    roomFound = True
+            
+            if roomFound:
+                continue
+            
+            # ansonsten neues Tile erstellen und mit dem aktuellen verbinden
+            newRoom = Room(selectedRoom.x + xOffset, selectedRoom.y + yOffset)
+            newRoom.connectRooms(selectedRoom)
+            self.addRoom(newRoom)
                 
             generatedRooms+=1
             
@@ -117,10 +115,10 @@ class Map():
 
         # Für jeden Raum die Anzahl an gefährlichen Nachbarräumen setzen
         for room in self.getRooms():
-            connectedRooms: Room
+            connectedRoom: Room
             dangerousNearbyRooms = 0
-            for connectedRooms in self.getNeighbouringRoomsWithConnection(room):
-                if connectedRooms.isDangerous:
+            for connectedRoom in self.getNeighbouringRoomsWithConnection(room):
+                if connectedRoom.isDangerous:
                     dangerousNearbyRooms+=1
             room.dangerousNearbyRooms = dangerousNearbyRooms
             # Nur Räume, die nicht gefährlich sind, können schon gescannt sein!
@@ -145,45 +143,45 @@ class Map():
         buffer = [[("." if i % 2 != 0 and j % 2 != 0 else " ") for i in range(self.size * 2 + 1)] for j in range(self.size * 2 + 1)]
 
         # Durchlauf, um Räume und Farben zu platzieren
-        tile: Room
-        for tile in self.rooms:
+        room: Room
+        for room in self.rooms:
             
             roomChar = "#"
-            if tile.isRevealed:
-                roomChar = safeColor + str(tile.dangerousNearbyRooms) + defaultColor
+            if room.isRevealed:
+                roomChar = safeColor + str(room.dangerousNearbyRooms) + defaultColor
             
-            elif tile.isMarked:
+            elif room.isMarked:
                 roomChar = markColor + "#" + defaultColor
             
-            buffer[tile.y*2+1][tile.x*2+1] = roomChar
+            buffer[room.y*2+1][room.x*2+1] = roomChar
         
         # erster Durchlauf um die Wege zu platzieren
-        for tile in self.getRooms():
-            for neighbor in self.getNeighbouringRoomsWithConnection(tile):
-                posOffsetX = neighbor.x - tile.x
-                posOffsetY = neighbor.y - tile.y
+        for room in self.getRooms():
+            for neighbor in self.getNeighbouringRoomsWithConnection(room):
+                posOffsetX = neighbor.x - room.x
+                posOffsetY = neighbor.y - room.y
                 
                 directionIndex = getDirectionByPositionOffset( (posOffsetX, posOffsetY) )
                 char = getTextCharacterByDirection(directionIndex)
                 
-                buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
+                buffer[room.y*2 + posOffsetY + 1][room.x*2 + posOffsetX + 1] = char 
                 
         # zweiter Durchlauf, um Diagonalverbindungen richtig zu platzieren 
         # vorheriger Code hat ergeben, dass beide Schleifen NICHT in eine gepackt werden können
         # und seperat gehalten werden müssen!!
-        for tile in self.getRooms():
-            for neighbor in self.getNeighbouringRoomsWithConnection(tile):
-                posOffsetX = neighbor.x - tile.x
-                posOffsetY = neighbor.y - tile.y
+        for room in self.getRooms():
+            for neighbor in self.getNeighbouringRoomsWithConnection(room):
+                posOffsetX = neighbor.x - room.x
+                posOffsetY = neighbor.y - room.y
                 
                 directionIndex = getDirectionByPositionOffset( (posOffsetX, posOffsetY) )
                 char = getTextCharacterByDirection(directionIndex)
-                if char == "/" and buffer[tile.y*2+posOffsetY + 1][tile.x*2+posOffsetX + 1] == "\\":
+                if char == "/" and buffer[room.y*2+posOffsetY + 1][room.x*2+posOffsetX + 1] == "\\":
                     char = "X"
-                    buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
-                if char == "\\" and buffer[tile.y*2+posOffsetY + 1][tile.x*2+posOffsetX + 1] == "/":
+                    buffer[room.y*2 + posOffsetY + 1][room.x*2 + posOffsetX + 1] = char 
+                if char == "\\" and buffer[room.y*2+posOffsetY + 1][room.x*2+posOffsetX + 1] == "/":
                     char = "X"
-                    buffer[tile.y*2 + posOffsetY + 1][tile.x*2 + posOffsetX + 1] = char 
+                    buffer[room.y*2 + posOffsetY + 1][room.x*2 + posOffsetX + 1] = char 
         return buffer
         
     def print(self, defaultColor:str ="", safeColor:str ="", markColor:str ="") -> None:
