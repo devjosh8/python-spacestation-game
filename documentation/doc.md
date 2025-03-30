@@ -644,6 +644,7 @@ Nachdem die wichtigen Funktionen anhand des Codes erklärt wurden, wird in diese
   <img src="images/pap.png" alt="Bildbeschreibung" />
 </div>
 
+
 *Programmablaufplan mit draw.io*
 
 Der Programmablauf zeigt den strukturierten Ablauf. Das Spiel wird in der `main.py` gestartet und die Karte wird generiert. Anschließend werden die Karte und die Legende in der Konsole angezeigt. Es wird nach User Input gefragt - ist dieser Input valide geht es weiter - ansonsten muss man eben nochmal einen Userinput machen. Entsprechende Fehlermeldungen wurden bereits erläutert. Nun wird der Input bearbeitet, es kann entweder:
@@ -653,7 +654,7 @@ Der Programmablauf zeigt den strukturierten Ablauf. Das Spiel wird in der `main.
 
 Wird ein Raum gescannt, kann es vorkommen, dass eine Falle gescannt wurde, wenn ja, ist das Spiel sofort zu Ende. Ist das nicht der Fall wird nach dem Durchführen der Aktion generell geprüft ob das Spiel vorbei ist, weil alle Nicht-Gefährlichen Felder aufgedeckt wurden. Wenn ja, ist das Spiel zu Ende, wenn nein, geht die Hauptschleife wieder von vorne los.
 
-<br><br><br><br><br><br><br><br><br><br><br><br>
+<div class="page"/>
 
 # Bibliotheken
 
