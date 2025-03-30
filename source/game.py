@@ -92,7 +92,10 @@ def handleScanOrReveal(userInputResult: UserInputResult, gameMap: Map, userMode:
 
     elif userMode == UserMode.MARK:
         room.isMarked = not room.isMarked
-
+        if room.isMarked:
+            print("Der Raum wurde markiert.")
+        else:
+            print("Der Raum ist jetzt nicht mehr markiert.")
     return False
 
 # gibt True zurück, wenn der Scan erfolgreich war, dann muss ein Joker abgezogen werden

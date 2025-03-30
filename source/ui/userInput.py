@@ -52,7 +52,8 @@ def getIntegerInput(prompt: str, minValue: int, maxValue: int) -> int:
 def handleUserInput(userInputColor: str, resetColor: str, mapSize: int) -> UserInputResult | None:
     c = userInputColor # für bessere Lesbarkeit im folgenden Code
     r = resetColor
-    print("\n'" + c + "m" + r + "' für Moduswechsel \t'" + c + "Enter" + r + "' für Koordinateneingabe" + r)
+    print("\n'" + c + "m" + r + "' für Moduswechsel \t'" + c + "Enter" + r + "' für Koordinateneingabe\t'"
+           + c + "j" + r + "'" + " für Joker" + r)
     userInput: str = input()
     if userInput.lower() == "m":
         return UserInputResult(UserInputResultType.CHANGE_MODE)
