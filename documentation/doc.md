@@ -1,42 +1,69 @@
+<p style="text-align: center; font-size: 3em; font-weight: bold; margin-bottom: 0.2em;">Python Projekt Raumstation</p>
+<p style="text-align: center; font-size: 1.5em; color: black;">Joshua Kandel</p>
+<p style="text-align: center; font-size: 1.5em; color: black;">01.04.2025</p>
+<div class="page"/>
+
 # Dokumentation
 
 # Inhaltsverzeichnis
 1. [Einleitung](#introduction)
 
-    1.1 [Spiel ausführen]()
+    * [Spiel ausführen]()
 
-    1.2 [Vorüberlegung und erste Ideen]()
+    * [Vorüberlegung und erste Ideen]()
 
-2. [Programmablauf](#1)
+2. [Programmarchitektur](#programmarchitektur)
 
-    2.1 [Projektaufbau]()
+    * [Projektaufbau]()
 
-    2.2 [Die verschiedenen Dateien]()
+    * [Programmablauf]()
 
-3. [Das Userinterface: Interaktion mit dem Spiel](#2)
+    * [Die verschiedenen Dateien]()
 
-    3.1 [Darstellung der Raumstation]()
+3. [Das Userinterface: Interaktion mit dem Spiel](#das-userinterface-interaktion-mit-dem-spiel)
 
-    3.2 [Die Legende]()
+    * [Darstellung der Raumstation]()
+
+    * [Die Legende]()
     
-    3.3 [Koordinateneingabe und Joker]()
-4. [Wichtige Codebestandteile](#1)
+    * [Koordinateneingabe und Joker]()
 
-    4.1 [Was ist ein Raum? - spaceshipRoom.py]()
+4. [Wichtige Codebestandteile](#wichtige-codebestandteile)
 
-    4.2 [Was ist eine Karte? - spaceshipMap.py]()
+    * [Die Hauptschleife]()
 
-    4.3 [Spielstart - Räume generieren]()
+    * [Was ist ein Raum? - spaceshipRoom.py]()
 
+    * [Was ist eine Karte? - spaceshipMap.py]()
+
+    * [Karten zufällig generieren]()
+
+    * [Wie die Karte auf die Konsole gelangt]()
+
+    * [Userinput]()
 
 5. [Bibliotheken](#1)
 
 6. [Testergebnisse und Analyse](#0)
 
+    * [Unittests]()
+
+    * [Statische Codeanalyse]()
+
+
+
+<div class="page"/>
 
 # Einleitung <a name="introduction"></a>
 
 Im Rahmen der Python-Vorlesung an der DHBW im Kurs TIS24 haben die Studenten die Aufgabe bekommen, ein Spiel in Python zu entwickeln. Die folgende Dokumentation dokumentiert meinen Code und meine Ideen, die ich in den letzten Wochen umgesetzt habe.
+
+*Anmerkung: Die Dokumentation wurde vollständig in Markdown verfasst. Da ich mich damit noch nicht so gut auskenne, bitte ich, schlechte Formatierung zu entschuldigen.*
+
+## Spiel ausführen
+
+Um das Spiel auszuführen / zu spielen, im `source`-Ordner die `main.py` ausführen:
+`python3 main.py`
 
 ## Vorüberlegungen und erste Ideeen
 
@@ -134,18 +161,39 @@ Außerdem sollte der User die Möglichkeit haben, Räume nicht nur zu scannen so
 
 Der Projektaufbau folgt den Bestimmungen in den Anforderungen an das Projekt. `map` enthält Python-Dateien, die etwas mit der Karte zutun haben (Räume, Karte und Helfer-Funktionen). `ui` enthält Python-Dateien für den User-Input. `main.py` und `game.py` sind die zwei Hauptdateien und liegen im Root-Verzeichnis. 
 
+## Programmablauf
+Der Programmablaufplan sieht etwa wie folgt aus:
+
+<div style="float: left; margin-right: 15px;">
+  <img src="images/pap.png" alt="Bildbeschreibung" />
+</div>
+
+
+*Programmablaufplan mit draw.io*
+
+Der Programmablauf zeigt den strukturierten Ablauf. Das Spiel wird in der `main.py` gestartet. In der `game.py` befindet sich dann die Hauptschleife, zuerst aber wird die Karte generiert, was in der `spaceshipMap.py` generiert. Anschließend werden die Karte und die Legende in der Konsole angezeigt. Jetzt kommt der wichtige Teil: durch die `userInput.py` wird der Nutzer jetzt nach Input gefragt. Es wird überprüft, ob der gegebene Input valide ist. Wenn nicht, muss der User den Input eben nochmal wiederholen, ansonsten geht es weiter. Entsprechende Fehlermeldungen wurden bereits erläutert. Nun wird der Input in der `game.py` bearbeitet, es kann entweder:
+    - ein Raum markiert werden
+    - ein Raum gescannt werden (ggf. mit Joker)
+    - der Modus geändert werden
+
+Wird ein Raum gescannt, kann es vorkommen, dass eine Falle gescannt wurde, wenn ja, ist das Spiel sofort zu Ende. Ist das nicht der Fall wird nach dem Durchführen der Aktion generell geprüft ob das Spiel vorbei ist. Dazu wird getestet, ob es noch Räume gibt, die nicht gefährlich sind und nicht aufgedeckt sind. Wenn nein, ist das Spiel zu Ende und man hat das Spiel gewonnen. Wenn ja, geht die Hauptschleife wieder von vorne los und läuft solange, bis man entweder gewonnen oder verloren hat.
+
+<div class="page"/>
+
 ## Die verschiedenen Dateien
+Jetzt gibt es kurz einen Überblick über die verschiedenen Dateien und welche Funktionen sie haben:
+* `main.py`: Der Einstiegspunkt in das Programm, ruft nur die `game.py` auf
+* `game.py`: Enthält die Hauptschleife und Spiellogik
+* `map/spaceshipMap.py`: Ist für die Karte, Kartengeneration und Kartenlogik zuständig
+* `map/spaceshipRoom.py`: Bietet logische Funktionen für Räume
+* `map/mapHelper.py`: Helferfunktionen für das Umgehen mit Karten und Räumen
+* `map/customErrors.py`: Eigene Fehler für bessere Fehlerbehandlung
+* `ui/consoleUtils.py`: Helferfunktionen für die Konsole
+* `ui/userInput.py`: UserInput Abfrage mit Fehlerbehandlung
 
-* `main.py`: Startpunkt des Spiels
-* `game.py`: Hauptschleife und oberflächliche Logik
-* `spaceshipMap.py`: Enthält Logik für die Karte
-* `spaceshipRoom.py`: Enthält Logik für einen Raum und Raumverbindungen
-* `mapHelper.py`: Helfer-Funktionen für die Karte und Raumverbindungen
-* `customErros.py`: Eigene Fehler für bessere Fehlerbehandlung im Bezug auf Räume und Karten
-* `userInput.py`: Helfer-Datei für den Input des Spielers
-* `consoleUtils.py`: Helfer-Funktionen für den Umgang mit der Konsole und vorbereitete Prints
+In den nächsten Kapiteln werden Userinterface und vor allem die wichtigen Codebestandteile ausführlich erklärt.
 
-# Das Userinterface: Interaktion mit dem Spiel
+# Das Userinterface: Interaktion mit dem Spiel <a name="ui"></a>
 Das Userinterface ist das Herz des Spiels. Es macht aus, wie man als Spieler mit dem Spiel umgeht, wie man es empfindet und seine Aktionen kontrolliert.
 
 ## Darstellung der Raumstation
@@ -709,24 +757,7 @@ class UserInputResult():
 
 Ein `UserInputResult` hat einen Typ (`CHANGE_MODE`, `REVEAL_ROOM` und `JOKER_ROOM`) und Koordinaten, wobei diese im Falle von `CHANGE_MODE` nicht relevant sind. Diese Klasse dient als Bündelung des Rückgabeergebnisses und ist, finde ich, schöner als drei verschiedene Variablen als Tupel zurückzugeben.
 
-# Programmablauf
-Nachdem die wichtigen Funktionen anhand des Codes erklärt wurden, wird in diesem Kapitel der Programmablauf anhand eines Programmablaufdiagramms gezeigt:
 
-<div style="float: left; margin-right: 15px;">
-  <img src="images/pap.png" alt="Bildbeschreibung" />
-</div>
-
-
-*Programmablaufplan mit draw.io*
-
-Der Programmablauf zeigt den strukturierten Ablauf. Das Spiel wird in der `main.py` gestartet. In der `game.py` befindet sich dann die Hauptschleife, zuerst aber wird die Karte generiert, was in der `spaceshipMap.py` generiert. Anschließend werden die Karte und die Legende in der Konsole angezeigt. Jetzt kommt der wichtige Teil: durch die `userInput.py` wird der Nutzer jetzt nach Input gefragt. Es wird überprüft, ob der gegebene Input valide ist. Wenn nicht, muss der User den Input eben nochmal wiederholen, ansonsten geht es weiter. Entsprechende Fehlermeldungen wurden bereits erläutert. Nun wird der Input in der `game.py` bearbeitet, es kann entweder:
-    - ein Raum markiert werden
-    - ein Raum gescannt werden (ggf. mit Joker)
-    - der Modus geändert werden
-
-Wird ein Raum gescannt, kann es vorkommen, dass eine Falle gescannt wurde, wenn ja, ist das Spiel sofort zu Ende. Ist das nicht der Fall wird nach dem Durchführen der Aktion generell geprüft ob das Spiel vorbei ist. Dazu wird getestet, ob es noch Räume gibt, die nicht gefährlich sind und nicht aufgedeckt sind. Wenn nein, ist das Spiel zu Ende und man hat das Spiel gewonnen. Wenn ja, geht die Hauptschleife wieder von vorne los und läuft solange, bis man entweder gewonnen oder verloren hat.
-
-<div class="page"/>
 
 # Bibliotheken
 
@@ -863,4 +894,4 @@ def addRoom(self, tile: Room) -> None:
 
 Die wichtigen komplizierten Methoden oder Methoden, die kritische Argumente besitzen, sind Docstrings selbstverständlich notiert.
 
-Des weiteren ist auch der Fehler `R0903` deaktiviert. Dieser Fehler setzt vorraus, dass eine Klasse zuwenig öffentliche Methoden hat. Dieser Fehler ist deaktiviert, da die Color-Klasse in `consoleUtils.py` keine öffentlichen Methoden hat und keine braucht. Deshalb kann der Fehler ignoriert werden.
+Des weiteren ist auch der Fehler `R0903` deaktiviert. Dieser Fehler setzt vorraus, dass eine Klasse zuwenig öffentliche Methoden hat. Dieser Fehler ist deaktiviert, da die Color-Klasse in `consoleUtils.py` keine öffentlichen Methoden hat und keine braucht. Deshalb kann der Fehler ignoriert werden. Hier wurde auch die Anzahl der maximalen Returns von standardmäßig 6 auf 8 erhöht. Dies ist notwendig, da zum Beispiel die Methode, die die Richtung zur Raumverbindung zurückgibt, 8 mögliche Outputs hat. Diese Anzahl kann nicht reduziert werden.
