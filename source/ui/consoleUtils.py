@@ -45,12 +45,15 @@ def printGreeter() -> None:
     print()
     
 def printLegend(userMode: UserMode, jokerAmount: int) -> None:
+    """ Druckt die Legende auf die Konsole; userMode ist der aktuelle userModue und jokerAmount 
+        die aktuelle Anzahl an Joker """
     print("" + Color.green + "#" + Color.reset + ": Sicher\t"
           + Color.red + "#" + Color.reset + ": Markierung\t", end="")
     printUserMode(userMode)
     print("\tJoker: " + Color.yellow + str(jokerAmount) + Color.reset)
     
 def printUserMode(userMode: UserMode) -> None:
+    """ Druckt den userMode auf die Konsole """
     if userMode == UserMode.MARK:  
         print("\tAktiver Modus: " + Color.red + "Markieren" + Color.reset, end="")
     if userMode == UserMode.SCAN:  

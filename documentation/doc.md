@@ -215,6 +215,93 @@ Auch hier gibt es wieder die üblichen Fehlermeldungen wenn ein angeforderter Ra
 
 # Wichtige Codebestandteile
 
+## Die Hauptschleife
+Die Hauptschleife ist in der `game.py` und ist das Gehirn, oder zumindest, der Frontallappen des Spiels. Hier befindet sich etwas Logik für den Spielverlauf und die GameLoop. Nach ein paar Initialisierungen, wobei die Karte erstellt und generiert wird geht das Spiel in die Hauptschleife:
+```python
+[...]
+
+gameMap = Map(MAP_SIZE)
+gameMap.generateMap()
+
+[...]
+
+while not shouldExit:
+  clearConsole()
+
+  gameMap.print(defaultColor=Color.reset, safeColor=Color.green, markColor=Color.red)
+  printLegend(userMode, jokerAmount)
+
+  userInputResult = handleUserInput(Color.yellow, Color.reset, MAP_SIZE)
+  if userInputResult is not None:
+
+    # Modus ändern
+    if userInputResult.type == UserInputResultType.CHANGE_MODE:
+        userMode = UserMode.SCAN if userMode == UserMode.MARK else UserMode.MARK
+
+    elif userInputResult.type == UserInputResultType.REVEAL_ROOM:
+        if handleScanOrReveal(userInputResult=userInputResult, gameMap=gameMap, userMode=userMode):
+            shouldExit = True
+        input()
+
+    elif userInputResult.type == UserInputResultType.JOKER_ROOM:
+        if jokerAmount > 0:
+            success = jokerRoomInformation(userInputResult=userInputResult, gameMap=gameMap)
+            input()
+            if success:
+                jokerAmount -= 1
+        else:
+            print("Du keine Joker mehr übrig.")
+            input()
+
+    gameWon = gameMap.isGameWon()
+
+    if gameWon:
+        shouldExit = True
+```
+Diese Schleife läuft für die gesamte Dauer eines Spiels. Nachdem die Karte und die Legende auf der Konsole angezeigt wurden, wird mithilfe der Datei `userInput.py` das User-Input abgegriffen und zurückgegeben. Handelt es sich dabei um den Typ `CHANGE_MODE`, wird der Modus gewechselt. Handelt es sich um einen Scan, wird versucht, die Koordinaten die ebenfalls zurückgegeben wurden, zu scannen. Die `handleScanOrReveal` Funktion gibt `TRUE` zurück, wenn eine Falle gescannt wurde. Dann endet das Spiel. 
+
+Hier wird ein normaler Scan oder eine normale Markierung behandelt:
+```python
+def handleScanOrReveal(userInputResult: UserInputResult, gameMap: Map, userMode: UserMode) -> bool:
+    x, y = userInputResult.revealX, userInputResult.revealY
+
+    [...]
+
+    if userMode == UserMode.SCAN:
+        if room.isDangerous:
+            print("Der aufgedeckte Raum enthält eine " + Color.red + Color.bold + "Falle!" + Color.reset)
+            return True
+        room.isRevealed = True
+        print("Der Raum wurde aufgedeckt!")
+
+    elif userMode == UserMode.MARK:
+        room.isMarked = not room.isMarked
+        if room.isMarked:
+            print("Der Raum wurde markiert.")
+        else:
+            print("Der Raum ist jetzt nicht mehr markiert.")
+    return False
+```
+Wird ein Joker ausgewählt, wird wie folgt vorgegangen:
+```python
+def jokerRoomInformation(userInputResult: UserInputResult, gameMap: Map) -> bool:
+    xCoordinate = userInputResult.revealX
+    yCoordinate = userInputResult.revealY
+    if gameMap.roomExists(xCoordinate, yCoordinate):
+        inputRoom = gameMap.getRoomAt(xCoordinate, yCoordinate)
+        if inputRoom.isRevealed:
+            print(f"Ein Raum in Zeile {yCoordinate} an Spalte {xCoordinate} ist bereits aufgedeckt.")
+            return False
+        print(f"JOKER: Der Raum in Zeile {yCoordinate} an Spalte {xCoordinate} ist {('eine Falle!' if inputRoom.isDangerous else 'ein sicherer Raum.')}")
+        return True
+
+    print(f"Ein Raum in Zeile {yCoordinate} an Spalte {xCoordinate} existiert nicht.")
+
+    return False
+```
+
+Hier wird der Typ des Raums zurückgegeben, der durch den Boolean `isDangerous` angegeben wird. Auch hier ist Fehlerbehandlung wieder mitinbegriffen.
+
 ## Was ist ein Raum?
 
 Ein Raum ist eine Klasse, die wie folgt definiert ist:
@@ -263,7 +350,7 @@ Man hätte gut und leicht daran getan, jedem Raum einfach ein `Room[]` zuzuweise
 ```
 Ein Byte besteht aus acht Bit, jedes Bit kann 0 oder 1 sein. Dementsprechend eignet sich ein Byte perfekt, um diese Konstellationen darzustellen. Man nummeriert im Byte von 0 bis 7 alle Stellen und jede Stelle repräsentiert dann dann für einen Raum, ob der Raum in diese Richtung eine Verbindung hat oder nicht.
 
-### Helfer-Funktionen
+### Helfer-Funktionen für Raumverbindungen
 Dafür werden bestimmte Helferfunktionen benötigt, die relative Koordinaten (zum Beipiel `x=1`, `y=0` - was _"nach rechts"_ bedeutet würde) umwandelt in das Bit, das gesetzt sein muss damit diese Verbindung tatsächlich existiert (bei diesem Beispiel wäre das Bit `2` [siehe oben]).
 
 Die Datei `mapHelper.py` im Ordner `source/map` enthält diese Funktionen. Eine dieser Funktionen ist hier beispielhaft: 
@@ -290,6 +377,29 @@ def getDirectionByPositionOffset(position: tuple[int, int]) -> int:
     raise ValueError("Offset coordinates could not be converted into direction index")
 ```
 Diese Funktion konvertiert ein Positionsoffset zwischen zwei Räumen in das benötigte Bit das gesetzt sein muss. Hierbei ist aber zu beachten, dass die Funktion die das Positionsoffset zwischen bei Räumen berechnet nicht kommutativ ist und hier also vorsichtig mit den Koordinaten und Bits umgegangen werden muss, denn eine falsche Reihenfolge kann schnell alles kaputt machen.
+
+### Räume verbinden
+
+Zwei Räume werden verbunden, indem die entsprechenden Bits in der Bitmaske gesetzt werden. Die bestehenden Verbindungen in der Bitmaske werden logisch geundet mit dem Bit, was gesetzt werden soll. Dieses wird ähnlich wie durch die oben gezeigte Funktion ermittelt, mit dem Unterschied, dass die Funktion `getBit` Räume direkt als Input bekommt und somit, wenn diese Funktion durch Tests funktioniert, Fehler durch die nicht vorhandene Kommutativität der Koordinaten und Raumpositionen verhindert werden können.
+
+```python
+    # verbindet zwei Räume miteinander (dh. schreibt die Connection-Bits um)
+    def connectRooms(self, other: Room) -> bool:
+        if self.roomsNearby(other):
+            
+            # Räume jetzt verbinden
+            bitConnectionToOther = getBit(self, other)
+            self.connections = self.connections | 1 << bitConnectionToOther
+            
+            bitConnectionFromOther = getBit(other, self)
+            other.connections = other.connections | 1 << bitConnectionFromOther
+            
+            return True
+        return False
+```
+Die Funktion `roomsNearby` gibt `TRUE`zurück, wenn Räume nebeneinander liegen.
+
+Raum-Verbindungen bestehen dann also, wenn das entsprechende Bit gesetzt wurde. Dadurch ist es auch sehr einfach eine Funktion zu schreiben, die ein Verbindung zwischen zwei Räumen ermittelt.
 
 ## Was ist eine Karte?
 
@@ -546,47 +656,9 @@ return buffer
 ```
 Der dritte Durchlauf ist einzig und allein dafür Verantwortlich, doppelte Querverbindungen `X` zwischen Räumen zu platzieren. Hierbei wird geprüft, ob ein Weg eine doppelte Überlappung durch einen Weg `/` und einen Weg `\` hat. Wenn ja, wird an diese Stelle ein `X` platziert. Mehrfaches Testen hat ergeben, dass es keine effizientere Methode gibt als diese hier. Es wurde versucht, den dritten und zweiten Durchgang miteinander zu verschachteln, es kam aber immer wieder zu Problemen und falsch platzierten Wegen, wobei die aktuelle Methode die einzige war, die funktioniert.
 
-## Die Hauptschleife
-Die Hauptschleife ist in der `game.py` und ist das Gehirn, oder zumindest, der Frontallappen des Spiels. Hier befindet sich oberflächliche Logik und die GameLoop. Nach ein paar Initialisierungen, wobei die Karte erstellt und generiert wird geht das Spiel in die Hauptschleife:
-```python
-while not shouldExit:
-  clearConsole()
-
-  gameMap.print(defaultColor=Color.reset, safeColor=Color.green, markColor=Color.red)
-  printLegend(userMode, jokerAmount)
-
-  userInputResult = handleUserInput(Color.yellow, Color.reset, MAP_SIZE)
-  if userInputResult is not None:
-
-    # Modus ändern
-    if userInputResult.type == UserInputResultType.CHANGE_MODE:
-        userMode = UserMode.SCAN if userMode == UserMode.MARK else UserMode.MARK
-
-    elif userInputResult.type == UserInputResultType.REVEAL_ROOM:
-        if handleScanOrReveal(userInputResult=userInputResult, gameMap=gameMap, userMode=userMode):
-            shouldExit = True
-        input()
-
-    elif userInputResult.type == UserInputResultType.JOKER_ROOM:
-        if jokerAmount > 0:
-            success = jokerRoomInformation(userInputResult=userInputResult, gameMap=gameMap)
-            input()
-            if success:
-                jokerAmount -= 1
-        else:
-            print("Du keine Joker mehr übrig.")
-            input()
-
-    gameWon = gameMap.isGameWon()
-
-    if gameWon:
-        shouldExit = True
-```
-Diese Schleife läuft für die gesamte Dauer eines Spiels. Nachdem die Karte und die Legende auf der Konsole angezeigt wurden, wird mithilfe der Datei `userInput.py` das User-Input abgegriffen und zurückgegeben. Handelt es sich dabei um den Typ `CHANGE_MODE`, wird der Modus gewechselt. Handelt es sich um einen Scan, wird versucht, die Koordinaten die ebenfalls zurückgegeben wurden, zu scannen. Diese Methode gibt `TRUE` zurück, wenn eine Falle gescannt wurde. Dann endet das Spiel. Falls ein Joker ausgewählt wurde, wird, falls man noch Joker übrig hat, versucht mithilfe des Jokers ein Raum zu bestimmen. Der Rest ist selbsterklärend.
-
 ## Userinput
 In der `userInput.py` in `source/ui` wird der User-Input wie folgt aufgenommen:
-
+Die Funktion nimmt auch hier eine Akzentfarbe `userInputColor`, die Standardfarbe `resetColor` und `mapSize`, was für Überprüfung der Gültigkeit des Inputs notwendig ist.
 ```python
 def handleUserInput(userInputColor: str, resetColor: str, mapSize: int) -> UserInputResult | None:
   c = userInputColor # für bessere Lesbarkeit im folgenden Code
@@ -647,12 +719,12 @@ Nachdem die wichtigen Funktionen anhand des Codes erklärt wurden, wird in diese
 
 *Programmablaufplan mit draw.io*
 
-Der Programmablauf zeigt den strukturierten Ablauf. Das Spiel wird in der `main.py` gestartet und die Karte wird generiert. Anschließend werden die Karte und die Legende in der Konsole angezeigt. Es wird nach User Input gefragt - ist dieser Input valide geht es weiter - ansonsten muss man eben nochmal einen Userinput machen. Entsprechende Fehlermeldungen wurden bereits erläutert. Nun wird der Input bearbeitet, es kann entweder:
+Der Programmablauf zeigt den strukturierten Ablauf. Das Spiel wird in der `main.py` gestartet. In der `game.py` befindet sich dann die Hauptschleife, zuerst aber wird die Karte generiert, was in der `spaceshipMap.py` generiert. Anschließend werden die Karte und die Legende in der Konsole angezeigt. Jetzt kommt der wichtige Teil: durch die `userInput.py` wird der Nutzer jetzt nach Input gefragt. Es wird überprüft, ob der gegebene Input valide ist. Wenn nicht, muss der User den Input eben nochmal wiederholen, ansonsten geht es weiter. Entsprechende Fehlermeldungen wurden bereits erläutert. Nun wird der Input in der `game.py` bearbeitet, es kann entweder:
     - ein Raum markiert werden
     - ein Raum gescannt werden (ggf. mit Joker)
     - der Modus geändert werden
 
-Wird ein Raum gescannt, kann es vorkommen, dass eine Falle gescannt wurde, wenn ja, ist das Spiel sofort zu Ende. Ist das nicht der Fall wird nach dem Durchführen der Aktion generell geprüft ob das Spiel vorbei ist, weil alle Nicht-Gefährlichen Felder aufgedeckt wurden. Wenn ja, ist das Spiel zu Ende, wenn nein, geht die Hauptschleife wieder von vorne los.
+Wird ein Raum gescannt, kann es vorkommen, dass eine Falle gescannt wurde, wenn ja, ist das Spiel sofort zu Ende. Ist das nicht der Fall wird nach dem Durchführen der Aktion generell geprüft ob das Spiel vorbei ist. Dazu wird getestet, ob es noch Räume gibt, die nicht gefährlich sind und nicht aufgedeckt sind. Wenn nein, ist das Spiel zu Ende und man hat das Spiel gewonnen. Wenn ja, geht die Hauptschleife wieder von vorne los und läuft solange, bis man entweder gewonnen oder verloren hat.
 
 <div class="page"/>
 
@@ -669,3 +741,126 @@ Verwendet zum Testen:
 * `mypy`, Version: `1.15.0`: Für die Testabdeckung
 
 # Testergebnisse und Analyse
+
+## Unittests
+
+Die Unittests wurden geschrieben um einfache Funktionen zu testen. Sie haben tatsächlich sehr geholfen, Fehler zu finden, die zum Beispiel die Kommutativität von Raumverbindungen betrifft und konnten helfen, Fehler schnell zu finden. 
+
+### Unittest-Durchführung
+
+Befehl: `PYTHONPATH=.. python3 -m unittest` im `tests`-Ordner ausführen. 
+
+* Der `PYTHONPATH` ist wichtig, da das Projekt in unterschiedliche Module gegliedert ist und Module nicht erkannt werden, wenn der Python-Path dem `tests`-Ordner entspricht.
+
+Ergebnis: 
+```text
+python -m unittest
+..................Geben Sie eine Zahl ein: Geben Sie eine Zahl ein: Bitte eine valide Zahl eingeben!
+.Geben Sie eine Zahl ein: Geben Sie eine Zahl ein: Bitte eine Zahl im Bereich zwischen 1 und 20 angeben!
+..Geben Sie eine Zahl ein: Geben Sie eine Zahl ein:
+'redmreset' für Moduswechsel    'redEnterreset' für Koordinateneingabe  'redjreset' für Jokerreset
+....
+----------------------------------------------------------------------
+Ran 25 tests in 0.095s
+
+OK
+```
+
+### Unittest-Coverage
+
+*Anmerkung: Die Test-Abdeckung der Datei `spaceshipMap.py` liegt bei ca. 30%. Das liegt daran, dass es "große" Methoden innerhalb dieser Datei gibt, darunter die zufällige Kartengenerierung und das Drucken der Karte auf die Konsole, die sehr viel Platz einnehmen und sehr schlecht oder gar nicht getestet werden können. Außerdem gibt es Dateien oder Funktionen, bei welchen es keinen Sinn machen würde, diese zu testen. Darunter fallen zum Beispiel Funktionen, die nur etwas auf die Konsole printen (siehe `consoleUtils.py`)*
+
+Befehl: `PYTHONPATH=.. python3 -m coverage run -m unittest discover` im `tests`-Ordner ausführen. 
+Danach ` python3 -m coverage report` für das Ergebnis:
+
+```text
+python -m coverage report
+Name                                                                                                           Stmts   Miss  Cover
+----------------------------------------------------------------------------------------------------------------------------------
+C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\__init__.py                0      0   100%
+C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\__init__.py            0      0   100%
+C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\customErrors.py        6      0   100%
+C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\mapHelper.py          57      0   100%
+C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\spaceshipMap.py      152    107    30%
+C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\spaceshipRoom.py      76      1    99%
+C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\ui\__init__.py             0      0   100%
+C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\ui\userInput.py           59      5    92%
+test_map.py                                                                                                       79      8    90%
+test_mapHelper.py                                                                                                 36      0   100%
+test_rooms.py                                                                                                    115      0   100%
+test_userInput.py                                                                                                 43      0   100%
+----------------------------------------------------------------------------------------------------------------------------------
+TOTAL                                                                                                            623    121    81%
+```
+## Statische Codeanalyse
+
+### Mypy
+
+Befehl: `python -m mypy --explicit-package-bases --check-untyped-defs .` im `source` Ordner ausführen. Hier wird das Argument `--explicit-package-bases` verwendet. `--explicit-package-bases` ist notwendig, damit hier die Module richtig erkannt werden. Ich habe leider keinen Weg drumherum gefunden.
+
+Ergebnis:
+
+```text
+python -m mypy --explicit-package-bases .
+Success: no issues found in 11 source files
+```
+
+Test der Testdateien:
+
+* `python -m mypy --explicit-package-bases .` im `test`-Ordner
+* hier können die Fehler für eine fehlende Typ-Annotation ignoriert werden, da `mockInput` keinen Typ hat und das annotieren eines Typs einen Fehler wirft
+
+### Pylint
+
+Befehl: `PYTHONPATH=. python -m pylint .` im `source`-Ordner ausführen.
+
+Ergebnis: 
+```text
+python -m pylint .
+
+--------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+```
+
+Test der Testdateien:
+
+* `PYTHONPATH=. python -m pylint .` im `test`-Ordner
+* in der `pylintrc` im `tests`-Ordner sind einige weitere Konfigurationen vorgenommen wurden. Erklärungen sind in den Kommentaren erhalten. 
+* hier wird auch ein Ergebnis von 10/10 ausgegeben
+
+### Wichtige Pylint-Config Einstellungen
+
+In der Pylintconfig wurden einige Einstellungen vorgenommen, die hier erläutert werden.
+Config:
+```text
+[MASTER]
+disable=
+    C0303, # Trailing Whitespace
+    C0116, # missing-function-docstring
+    R0903, # too few public methods (damit bei der Color-Klasse nicht gemeckert wird)
+
+
+[MESSAGES CONTROL]
+# Die maximale Anzahl der Return-Statements pro Funktion
+max-returns=8
+```
+
+Zunächst einmal wurde der Fehler `C0303` deaktiviert. Dieser bezieht sich auf Trailing Whitespaces. Darunter fallen zum Beispiel zwei aufeinander folgende Leerzeilen. Aber auch ein Code wie solcher
+```python
+[...]
+        
+    # in der Mitte der Karte anfangen
+[...]
+```
+wird als Fehler angezeigt, weil eine reine Kommentarzeile nicht gewertet wird und dann zwei Leerzeilen hintereinander sind. Außerdem sind mehr als ein Leerzeichen manchmal notwendig, um den Code übersichtlicher zu gestalten und somit kein Kriterium für mich, warum ein Code nicht * gut * sein sollte.
+
+Außerdem deaktiviert wurde der Fehler `C0116`. Für manche Funktionen ist es schlicht nicht notwendig einen Docstring zu notieren wenn die Funktionen selbst schon selbsterklärend sind. Ein Beispiel wäre die Methode:
+
+```python
+def addRoom(self, tile: Room) -> None:
+    self.rooms.append(tile)
+```
+
+Die wichtigen komplizierten Methoden oder Methoden, die kritische Argumente besitzen, sind Docstrings selbstverständlich notiert.
+
+Des weiteren ist auch der Fehler `R0903` deaktiviert. Dieser Fehler setzt vorraus, dass eine Klasse zuwenig öffentliche Methoden hat. Dieser Fehler ist deaktiviert, da die Color-Klasse in `consoleUtils.py` keine öffentlichen Methoden hat und keine braucht. Deshalb kann der Fehler ignoriert werden.

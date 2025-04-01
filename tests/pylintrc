@@ -1,0 +1,28 @@
+[BASIC]
+argument-naming-style=snake_case
+attr-naming-style=snake_case
+class-attribute-naming-style=snake_case
+docstring-min-length=5
+function-naming-style=snake_case
+method-naming-style=snake_case
+module-naming-style=snake_case
+variable-naming-style=snake_case
+
+[DESIGN]
+max-attributes=10
+
+[FORMAT]
+max-line-length=160
+
+[MASTER]
+disable=
+    C0303, # Trailing Whitespace
+    C0116, # missing-function-docstring
+    R0903, # too few public methods (damit bei der Color-Klasse nicht gemeckert wird)
+    W0622, # Redifinierung (wird in den Tests häufiger verwendet; ist deshalb obsolet)
+    W0613, # unused Argument (mock Argumente können nicht aus der Methode entfernt werden)
+
+
+[MESSAGES CONTROL]
+# Die maximale Anzahl der Return-Statements pro Funktion
+max-returns=8

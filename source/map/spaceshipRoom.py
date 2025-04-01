@@ -20,6 +20,7 @@ class Room():
     
     # sind zwei Zellen nebeneinander?
     def roomsNearby(self, other: Room) -> bool:
+        """ testet, ob Räume nebeneinander sind. Gibt TRUE oder FALSE zurück """
         if abs(self.x - other.x) <= 1:
             if abs(self.y - other.y) <= 1:
                 return True
@@ -28,33 +29,38 @@ class Room():
     
     # ist das Bit in den Connections gesetzt?
     def connectedTo(self, other: Room) -> bool:
+        """ testet, ob Räume verbunden sind. Gibt TRUE oder FALSE zurück """
         if not self.roomsNearby(other):
             return False
-        bitConnection = getBit(self, other)
+        bitConnection = getBitByOffset(self, other)
         return ((1 << bitConnection) & self.connections) > 0
     
-    # verbindet zwei Zellen miteinander (dh. schreibt die Connection-Bits um)
+    # verbindet zwei Räume miteinander (dh. schreibt die Connection-Bits um)
     def connectRooms(self, other: Room) -> bool:
+        """ Verbindet zwei Räume. Gibt TRUE zurück, wenn die Verbindung erfolgreich war
+            testet NICHT, ob eine Verbindung schon bestand """
         if self.roomsNearby(other):
             
-            # Zellen jetzt verbinden
-            bitConnectionToOther = getBit(self, other)
+            # Räume jetzt verbinden
+            bitConnectionToOther = getBitByOffset(self, other)
             self.connections = self.connections | 1 << bitConnectionToOther
             
-            bitConnectionFromOther = getBit(other, self)
+            bitConnectionFromOther = getBitByOffset(other, self)
             other.connections = other.connections | 1 << bitConnectionFromOther
             
             return True
         return False    
     
     def disconnectRooms(self, other: Room) -> bool:
+        """ Entfernt die Verbindung von zwei Räumen. Gibt TRUE zurück, wenn die Räume nebeneinander sind  
+            und keine Verbindung hatten, oder wenn die Verbindung entfernt wurde"""
         if self.roomsNearby(other):
             
             # Zellen jetzt nicht mehr verbinden (logisches XOR => nur das Bit was wir entfernen wollen, wird 0)
-            bitConnectionToOther = getBit(self, other)
+            bitConnectionToOther = getBitByOffset(self, other)
             self.connections = self.connections ^ 1 << bitConnectionToOther
             
-            bitConnectionFromOther = getBit(other, self)
+            bitConnectionFromOther = getBitByOffset(other, self)
             other.connections = other.connections ^ 1 << bitConnectionFromOther
             
             return True
@@ -62,9 +68,11 @@ class Room():
     
     # gibt True zurück, wenn der Raum in alle Richtungen umgeben ist
     def allConnectionsOccupied(self) -> bool:
+        """ gibt zurück, ob ein Raum in alle Richtungen verbunden ist """
         return self.connections == 0b11111111
 
     def getNumberOfConnections(self) -> int:
+        """ Gibt die Anzahl der Verbindungen eines Raumes zu anderen Räumen zurück """
         connections = 0
         for i in range(8):
             if (1<<i) & self.connections > 0:
@@ -72,9 +80,9 @@ class Room():
         
         return connections
         
-
 # Berechnet im Bezug auf one das Bit das gesetzt sein muss, damit die beiden verbunden sind
-def getBit(one: Room, two: Room) -> int:
+def getBitByOffset(one: Room, two: Room) -> int:
+    """ Berechnet das Bit, das gesetzt sein muss, damit one mit two verbunden ist """
     xDiff = two.x - one.x
     yDiff = two.y - one.y
     

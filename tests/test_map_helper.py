@@ -1,9 +1,12 @@
+""" Testet Methoden und Funktionen im Beziehung zum mapHelper """
+
 import unittest
 
 from source.map.mapHelper import getDirectionByPositionOffset, getPositionOffsetByDirection, getTextCharacterByDirection
 
 class TestMapHelper(unittest.TestCase):
-    def test_get_position_offset_by_direction(self):
+    """ Testet Methoden und Funktionen im Beziehung zum mapHelper """
+    def test_get_position_offset_by_direction(self) -> None:
         """Testet, ob getPositionOffsetByDirection die richtigen Koordinaten zurückgibt."""
         
         # Teste alle Richtungen
@@ -20,7 +23,7 @@ class TestMapHelper(unittest.TestCase):
         with self.assertRaises(ValueError):
             getPositionOffsetByDirection(8)
             
-    def test_get_direction_by_position_offset(self):
+    def test_get_direction_by_position_offset(self) -> None:
         """Testet, ob getDirectionByPositionOffset den richtigen Richtungsindex zurückgibt."""
         
         # Teste alle Positionen
@@ -37,7 +40,7 @@ class TestMapHelper(unittest.TestCase):
         with self.assertRaises(ValueError):
             getDirectionByPositionOffset((0, 2))  # Keine gültige Richtung
 
-    def test_get_text_character_by_direction(self):
+    def test_get_text_character_by_direction(self) -> None:
         """Testet, ob getTextCharacterByDirection den richtigen Textcharakter zurückgibt."""
         
         # Teste alle Richtungen

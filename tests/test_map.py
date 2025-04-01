@@ -1,12 +1,13 @@
+""" Testet Methoden und Funktionen im Beziehung zur spaceship-Map """
+
 import unittest
-from unittest.mock import patch, MagicMock
 from source.map.spaceshipMap import Map
 from source.map.spaceshipRoom import Room
 
 class TestMap(unittest.TestCase):
+    """ Testet Methoden und Funktionen im Beziehung zur spaceship-Map """
 
-
-    def test_get_tile_at(self):
+    def test_get_tile_at(self) -> None:
         """ Testet, ob getTileAt den richtigen Raum zurückgibt. """
         map = Map(5)
         room = Room(2, 3, False)
@@ -16,7 +17,7 @@ class TestMap(unittest.TestCase):
         returned_room = map.getRoomAt(2, 3)
         self.assertEqual(returned_room, room)
 
-    def test_tile_exists(self):
+    def test_tile_exists(self) -> None:
         """ Testet, ob tileExists korrekt funktioniert. """
         map = Map(5)
         room = Room(2, 3, False)
@@ -28,7 +29,7 @@ class TestMap(unittest.TestCase):
         # Überprüfen, ob tileExists False zurückgibt
         self.assertFalse(map.roomExists(0, 0))
 
-    def test_get_neighbouring_tiles_with_connection(self):
+    def test_get_neighbouring_tiles_with_connection(self) -> None:
         """ Testet, ob getNeighbouringTilesWithConnection benachbarte Räume korrekt zurückgibt. """
         map = Map(5)
         room1 = Room(2, 2, False)
@@ -41,7 +42,7 @@ class TestMap(unittest.TestCase):
         neighbours = map.getNeighbouringRoomsWithConnection(room1)
         self.assertIn(room2, neighbours)
 
-    def test_is_game_won_all_revealed(self):
+    def test_is_game_won_all_revealed(self) -> None:
         """ Testet, ob isGameWon True zurückgibt, wenn alle nicht gefährlichen Räume aufgedeckt sind. """
         map = Map(5)
         room1 = Room(1, 1, False)
@@ -54,7 +55,7 @@ class TestMap(unittest.TestCase):
         # Spiel sollte gewonnen sein, wenn alle nicht gefährlichen Räume aufgedeckt sind
         self.assertTrue(map.isGameWon())
 
-    def test_is_game_won_not_all_revealed(self):
+    def test_is_game_won_not_all_revealed(self) -> None:
         """ Testet, ob isGameWon False zurückgibt, wenn nicht alle nicht gefährlichen Räume aufgedeckt sind. """
         map = Map(5)
         room1 = Room(1, 1, False)
@@ -67,7 +68,7 @@ class TestMap(unittest.TestCase):
         # Spiel sollte nicht gewonnen sein, da room2 nicht aufgedeckt ist
         self.assertFalse(map.isGameWon())
         
-    def test_is_game_won(self):
+    def test_is_game_won(self) -> None:
         """Testet, ob isGameWon korrekt prüft, ob das Spiel gewonnen wurde."""
         map = Map(5)
         
@@ -92,7 +93,7 @@ class TestMap(unittest.TestCase):
         
         self.assertFalse(map.isGameWon())  # Das Spiel sollte nicht gewonnen sein
 
-    def test_remove_map_tile(self):
+    def test_remove_map_tile(self) -> None:
         """Testet, ob removeMapTile einen Raum korrekt entfernt."""
         map = Map(5)
         room = Room(2, 2, False)
@@ -102,7 +103,7 @@ class TestMap(unittest.TestCase):
         map.removeRoom(room)
         self.assertNotIn(room, map.getRooms())  # Raum sollte entfernt worden sein
 
-    def test_get_neighbouring_tiles_with_connection(self):
+    def test_get_neighbouring_tiles_with_connection2(self) -> None:
         """Testet, ob getNeighbouringTilesWithConnection die richtigen Nachbarn zurückgibt."""
         map = Map(5)
         room1 = Room(2, 2, False)
@@ -120,5 +121,3 @@ class TestMap(unittest.TestCase):
         self.assertIn(room2, neighbours)
         self.assertIn(room3, neighbours)
         self.assertNotIn(room1, neighbours)  # Room1 sollte nicht als Nachbar erscheinen
-
-

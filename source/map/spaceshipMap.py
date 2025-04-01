@@ -136,6 +136,7 @@ class Map():
     
     
     def _createPrintBuffer(self, defaultColor:str ="", safeColor:str ="", markColor:str ="") -> list[list[str]]:
+        """ erstellt den Printbuffer, gefüllt mit den Farben aus den Argumenten. """
         # Ein 2D Array erstellen mit den Dimensionen size * size initialisiert auf alles ' ' 
         # Wichtig!!! Im Buffer kommt zuerst die Y-Koordinate, dann die X Koordinate!
         # Einen Punkt . jeweils nur in jede zweite Spalte und Zeile platzieren, damit das Raster nicht voll mit Punkten ist
@@ -185,6 +186,8 @@ class Map():
         return buffer
         
     def print(self, defaultColor:str ="", safeColor:str ="", markColor:str ="") -> None:
+        """ druckt die Map auf die Konsole. Argumente sind hier die Standardfarbe (Resetcolor), Akzentfarbe von
+            sicheren Räumen (safeColor) und Akzentfarbe von markierten Räumen (markColor)"""
         buffer = self._createPrintBuffer(defaultColor=defaultColor, safeColor=safeColor, markColor=markColor)
         # Spaltenanzeige printen
         print("\t", end="")
@@ -219,12 +222,15 @@ class Map():
         return False
     
     def getStartingRoom(self) -> Room:
+        """ gibt den Startraum einer Karte zurück, der in jedem Fall in der Mitte der Karte liegt und
+            existieren muss """
         genX = int(self.size / 2)
         genY = int(self.size / 2)
         return self.getRoomAt(genX, genY)
 
     # gibt alle Nachbar-Räume eines Raums zurück die mit dem Raum "tile" Verbunden sind
     def getNeighbouringRoomsWithConnection(self, tile: Room) -> list[Room]:
+        """ Gibt alle Nachbarräume eines Raums als Liste zurück, die mit dem Raum verbunden sind """
         neighbours = []
         
         for i in range(8):
@@ -237,6 +243,8 @@ class Map():
         return neighbours
     
     def getNeighbouringRooms(self, tile: Room) -> list[Room]:
+        """ Gibt alle Nachbarräume eines Raums zurück, unabhängig davon, ob die Räume
+            verbunden sind oder nicht"""
         neighbours = []
         
         for i in range(8):
@@ -247,6 +255,8 @@ class Map():
         return neighbours
     
     def isGameWon(self) -> bool:
+        """ testet ob das Spiel gewonnen ist. Verglichen wird hier, ob alle Räume
+            die nicht gefährlich sind aufgedeckt sind oder nicht """
         win = True
         for room in self.getRooms():
             if not room.isDangerous and not room.isRevealed:
