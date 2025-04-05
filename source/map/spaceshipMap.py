@@ -37,7 +37,7 @@ class Map():
         newRoom = Room(genX, genY, False)
         self.addRoom(newRoom)
 
-        while generatedRooms < 50:
+        while generatedRooms < (self.size**2/2):
             # zufälligen Raum auswählen
             selectedRoom:Room = random.choice(self.getRooms())
             # weitermachen, wenn alle Richtungen blockiert sind

@@ -152,8 +152,9 @@ Außerdem sollte der User die Möglichkeit haben, Räume nicht nur zu scannen so
 │   └── ui
 │     ├── userInput.py
 │     └── consoleUtils.py
-└── tests
+└── test
     ├── test_map.py
+    ├── test_game.py
     ├── test_mapHelper.py
     ├── test_rooms.py
     └── test_userInput.py
@@ -763,7 +764,7 @@ Ein `UserInputResult` hat einen Typ (`CHANGE_MODE`, `REVEAL_ROOM` und `JOKER_ROO
 
 Verwendete Module:
 * `random`: Für die zufällige Map-Generation 
-* `os`: Für das leeren der Konsole über einen System-Aufruf
+* `os`: Für das leeren der Konsole
 
 Verwendet zum Testen:
 * `unittest`: Für die Unittests
@@ -779,49 +780,52 @@ Die Unittests wurden geschrieben um einfache Funktionen zu testen. Sie haben tat
 
 ### Unittest-Durchführung
 
-Befehl: `PYTHONPATH=.. python3 -m unittest` im `tests`-Ordner ausführen. 
-
-* Der `PYTHONPATH` ist wichtig, da das Projekt in unterschiedliche Module gegliedert ist und Module nicht erkannt werden, wenn der Python-Path dem `tests`-Ordner entspricht.
+Befehl: `python3 -m unittest discover` im Root-Ordner ausführen. 
 
 Ergebnis: 
 ```text
-python -m unittest
-..................Geben Sie eine Zahl ein: Geben Sie eine Zahl ein: Bitte eine valide Zahl eingeben!
+python -m unittest discover
+Ein Raum in Zeile 5 an Spalte 5 ist bereits aufgedeckt.
+.JOKER: Der Raum in Zeile 5 an Spalte 5 ist eine Falle!
+.....................Geben Sie eine Zahl ein: Geben Sie eine Zahl ein: Bitte eine valide Zahl eingeben!
 .Geben Sie eine Zahl ein: Geben Sie eine Zahl ein: Bitte eine Zahl im Bereich zwischen 1 und 20 angeben!
 ..Geben Sie eine Zahl ein: Geben Sie eine Zahl ein:
 'redmreset' für Moduswechsel    'redEnterreset' für Koordinateneingabe  'redjreset' für Jokerreset
 ....
 ----------------------------------------------------------------------
-Ran 25 tests in 0.095s
+Ran 29 tests in 0.087s
 
 OK
 ```
 
 ### Unittest-Coverage
 
-*Anmerkung: Die Test-Abdeckung der Datei `spaceshipMap.py` liegt bei ca. 30%. Das liegt daran, dass es "große" Methoden innerhalb dieser Datei gibt, darunter die zufällige Kartengenerierung und das Drucken der Karte auf die Konsole, die sehr viel Platz einnehmen und sehr schlecht oder gar nicht getestet werden können. Außerdem gibt es Dateien oder Funktionen, bei welchen es keinen Sinn machen würde, diese zu testen. Darunter fallen zum Beispiel Funktionen, die nur etwas auf die Konsole printen (siehe `consoleUtils.py`)*
+*Anmerkung: Es gibt Dateien oder Funktionen, bei welchen es keinen Sinn machen würde, diese zu testen. Darunter fallen zum Beispiel Funktionen, die nur etwas auf die Konsole printen (siehe `consoleUtils.py`). Deshalb wird diese Datei nicht berücksichtigt.*
 
-Befehl: `PYTHONPATH=.. python3 -m coverage run -m unittest discover` im `tests`-Ordner ausführen. 
+Befehl: `python3 -m coverage run -m unittest discover` im Root-Verzeichnis-Ordner ausführen. 
 Danach ` python3 -m coverage report` für das Ergebnis:
 
 ```text
-python -m coverage report
-Name                                                                                                           Stmts   Miss  Cover
-----------------------------------------------------------------------------------------------------------------------------------
-C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\__init__.py                0      0   100%
-C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\__init__.py            0      0   100%
-C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\customErrors.py        6      0   100%
-C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\mapHelper.py          57      0   100%
-C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\spaceshipMap.py      152    107    30%
-C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\map\spaceshipRoom.py      76      1    99%
-C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\ui\__init__.py             0      0   100%
-C:\Users\Josh\Desktop\Programmieren\python_projekt_josh\python-spacestation-game\source\ui\userInput.py           59      5    92%
-test_map.py                                                                                                       79      8    90%
-test_mapHelper.py                                                                                                 36      0   100%
-test_rooms.py                                                                                                    115      0   100%
-test_userInput.py                                                                                                 43      0   100%
-----------------------------------------------------------------------------------------------------------------------------------
-TOTAL                                                                                                            623    121    81%
+Name                          Stmts   Miss  Cover
+-------------------------------------------------
+source/__init__.py                0      0   100%
+source/game.py                   84     64    24%
+source/map/__init__.py            0      0   100%
+source/map/customErrors.py        6      0   100%
+source/map/mapHelper.py          57      0   100%
+source/map/spaceshipMap.py      152     48    68%
+source/map/spaceshipRoom.py      76      1    99%
+source/ui/__init__.py             0      0   100%
+source/ui/consoleUtils.py        31     11    65%
+source/ui/userInput.py           59      5    92%
+test/__init__.py                  5      0   100%
+test/test_game.py                21      0   100%
+test/test_map.py                 91      0   100%
+test/test_map_helper.py          36      0   100%
+test/test_rooms.py              112      0   100%
+test/test_user_input.py          43      0   100%
+-------------------------------------------------
+TOTAL                           773    129    83%
 ```
 ## Statische Codeanalyse
 
@@ -855,9 +859,9 @@ Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
 
 Test der Testdateien:
 
-* `PYTHONPATH=. python -m pylint .` im `test`-Ordner
+* `PYTHONPATH=.. python -m pylint .` im `test`-Ordner
 * in der `pylintrc` im `tests`-Ordner sind einige weitere Konfigurationen vorgenommen wurden. Erklärungen sind in den Kommentaren erhalten. 
-* hier wird auch ein Ergebnis von 10/10 ausgegeben
+* hier wird auch ein Ergebnis von 10/10 ausgegeben (Fehler in `__init.py` können ignoriert werden)
 
 ### Wichtige Pylint-Config Einstellungen
 

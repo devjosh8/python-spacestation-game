@@ -1,5 +1,4 @@
 """ enthält die obere Logik für das Spiel """
-
 from map.spaceshipMap import Map
 from ui.consoleUtils import Color, clearConsole, printGreeter, printLegend
 from ui.userInput import UserInputResult, UserInputResultType, UserMode, handleUserInput
@@ -70,20 +69,18 @@ def gameLoop(gameMap: Map) -> None:
 # gibt True zurück, wenn der gescannte Raum eine Falle ist -> dann muss das Spiel enden
 def handleScanOrReveal(userInputResult: UserInputResult, gameMap: Map, userMode: UserMode) -> bool:
     x, y = userInputResult.revealX, userInputResult.revealY
-
     if not gameMap.roomExists(x, y):
         print(f"Ein Raum in Zeile {y} an Spalte {x} existiert nicht!")
         return False
 
     room = gameMap.getRoomAt(x, y)
-
     if room.isRevealed:
         if userMode == UserMode.SCAN:
             print("Der Raum ist bereits aufgedeckt!")
         elif userMode == UserMode.MARK:
             print("Der Raum ist bereits aufgedeckt und kann nicht markiert werden.")
         return False
-
+    
     if userMode == UserMode.SCAN:
         if room.isDangerous:
             print("Der aufgedeckte Raum enthält eine " + Color.red + Color.bold + "Falle!" + Color.reset)
@@ -92,6 +89,7 @@ def handleScanOrReveal(userInputResult: UserInputResult, gameMap: Map, userMode:
         print("Der Raum wurde aufgedeckt!")
 
     elif userMode == UserMode.MARK:
+        
         room.isMarked = not room.isMarked
         if room.isMarked:
             print("Der Raum wurde markiert.")

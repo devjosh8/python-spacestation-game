@@ -17,6 +17,23 @@ class TestMap(unittest.TestCase):
         returned_room = map.getRoomAt(2, 3)
         self.assertEqual(returned_room, room)
 
+    def test_map_start_tile_exists(self) -> None:
+        map = Map(4)
+        map.generateMap()
+        self.assertTrue(map.roomExists(2, 2))
+
+        map = Map(10)
+        map.generateMap()
+        self.assertTrue(map.roomExists(5, 5))
+
+        map = Map(12)
+        map.generateMap()
+        self.assertTrue(map.roomExists(6, 6))
+
+        map = Map(20)
+        map.generateMap()
+        self.assertTrue(map.roomExists(10, 10))
+
     def test_tile_exists(self) -> None:
         """ Testet, ob tileExists korrekt funktioniert. """
         map = Map(5)
